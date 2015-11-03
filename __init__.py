@@ -1,9 +1,8 @@
-from ._face import Interface, Dynamic
-
-face = Interface
+from ._jute import Interface, Dynamic, implements, InterfaceConformanceError
 
 __all__ = [
     'Interface',
-    'face',
     'Dynamic',
+    'implements',
+    'InterfaceConformanceError',
 ]
