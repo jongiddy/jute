@@ -1,5 +1,4 @@
 # jute
-Interfaces for Python.
 
 Yet another interface module for Python.
 
@@ -9,8 +8,8 @@ syntactical compatibility to indicate semantic compatibility.
 Interfaces provide a way to indicate semantic compatibility
 directly.
 
-Most existing interface modules for Python (e.g. ``abc``,
-and ``zope.interface``) check that implementing classes provide all the
+Most existing interface modules for Python (e.g. `abc`,
+and `zope.interface`) check that implementing classes provide all the
 attributes specified in the interface.  But they ignore the other side
 of the contract, failing to ensure that the receiver of the interface
 only calls operations specified in the interface.  This module checks
@@ -27,53 +26,164 @@ distinct, so you don't get tied up in knots getting a sub-class to
 implement a sub-interface when the super-class already implements the
 super-interface.
 
-To prevent interface checks from affecting performance, we recommend
-to code interface conversions inside ``if __debug__:`` clauses. This
-can be used to allow interface checks during debugging, and production
-code to use the original objects by running Python with the ``-O`` flag.
+## Define an Interface
 
-:Example:
+Define an interface by subclassing `jute.Interface`.
 
+```python
+import jute
+
+
+class Workable(jute.Interface):
+    x = 1  # an attribute
+    def work(self, val):
+        """Function to do some work."""
 ```
-import sys
-from jute import Interface
-class Writable(Interface):
-    def write(self, buf):
-        "Write the string buf."
 
-class StdoutWriter(Writable.Provider):
-    def flush(self):
-        sys.stdout.flush()
-    def write(self, buf):
-       sys.stdout.write(buf)
+## Implement an Interface
 
-def output(writer, buf):
+There are several ways to indicate that instances of a class provide an
+interface. These are listed here, and for performance reasons, should typically
+be considered in the order that they appear.
+
+### Register a class that implements the interface
+
+For classes that define all attributes of an interface, decorate the class with
+`jute.implements`.
+
+```python
+@jute.implements(Workable)
+class DoubleWork:
+    x = 2
+    def work(self, val):
+        return val + val
+```
+
+If it is not possible to decorate a class, use the interface's
+`register_implementation` method to specify a class as an implementation of the
+interface.  Again, the class must define all interface attributes:
+
+```python
+Workable.register_implementation(ThirdPartyImplementation)
+```
+
+In either of the above cases, the interface is verified once, during
+registration.
+
+### Register a class whose instances provide the interface
+
+Sometimes a class does not define all interface attributes, but instances of
+the class will, typically through the `__init__` or `__getattr__` methods.  In
+this case, the interface provides a `Provider` attribute that can be
+subclassed.
+
+```python
+class SquareWork(Workable.Provider):
+    def __init__(self):
+        self.x = 1
+    def __getattr__(self, name):
+        if name == 'work':
+            def work(val):
+                return val * val
+            return work
+        raise AttributeError(name)
+```
+
+An interface's `Provider` is an empty class, and will not affect operation of
+the implementation.
+
+Subclassing an interface's Provider attribute indicates a claim to implement
+the interface.  This claim is verified during each conversion to the interface,
+and hence is slower than registering an implementation.
+
+If it is not possible to subclass the class, use the interface's
+`register_provider` method to specify that class instances will provide the
+interface:
+
+```python
+Workable.register_provider(ThirdPartyProvider)
+```
+
+### Dynamically indicate that an instance provides the interface
+
+Sometimes, especially for wrapper classes, it is useful to declare support for
+an interface dynamically.  Dynamic implementations are declared using the
+`jute.Dynamic` interface, which provides a single method `provides_interface`:
+
+```python
+class PrintAttributeAccessWrapper(jute.Dynamic.Provider):
+    def __init__(self, wrapped):
+        self.wrapped = wrapped
+
+    def __getattr__(self, name):
+        # return the wrapped object's attributes
+        print('Accessing attribute {}'.format(name))
+        return getattr(self.wrapped, name)
+
+    def provides_interface(self, interface):
+        # Check wrapped object's support for interface.
+        return interface.provided_by(self.wrapped)
+```
+
+Note, if you pass this object to `do_work`, it will print "Accessing attribute
+work" twice.  The first time is during interface verification, which will not
+actually call the function.  However, this may be an issue if `__getattr__`
+performs non-trivial work to resolve the attribute.
+
+## Use an Interface
+
+To use interfaces, cast an object to the interface by wrapping the object with
+the interface (`Workable(object)`)
+
+To prevent interface checks from affecting performance, consider putting
+interface casts inside `if __debug__:` clauses. This performs interface checks
+during debugging, but production code can run faster using the original objects
+by running Python with the `-O` flag.
+
+```python
+def do_work(worker):
     if __debug__:
-        writer = Writable(writer)
-    writer.write(buf)
-    writer.flush()
+        worker = Workable(worker)
+    return worker.work(5)
 
-out = StdoutWriter()
-output(out, 'Hello, World!')
+doubler = DoubleWork()
+squarer = SquareWork()
+wrapped = PrintAttributeAccessWrapper(squarer)
+assert do_work(doubler) == 10
+assert do_work(squarer) == 25
+assert do_work(wrapped) == 25
 ```
 
-In the above code, ``writer`` will be replaced by the interface, and the
-attempt to use ``flush``, which is not part of the interface, will fail.
+Not only is the object checked that it supports the `work` attribute.  Uses
+of the interface are checked that they do not use non-supported attributes.
 
-Subclassing an interface's Provider attribute indicates a claim to
-implement the interface.  This claim is verified during conversion to
-the interface, but only in non-optimised code.
+```python
+@jute.implements(Workable)
+class WorkingHard:
+    x = 4
 
-In optimised Python, ``writer`` will use the original object, and should
-run faster without the intervening interface replacement.  In this case,
-the code will work with the current implementation, but may fail if a
-different object, that does not support ``flush`` is passed.
+    def work(self, val):
+        return val
 
-Note, it is possible to use the `register_implementation` method to
-specify a type as an implementation of interface, even if it cannot be
-subclassed.  Hence, ``sys.stdout`` can be indicated as directly
-satisfying the``Writable`` interface, using
+    def dumpx(self):
+        print(self.x)
 
+
+def broken_do_work(worker):
+    if __debug__:
+        worker = Workable(worker)
+    worker.dumpx()
+    return worker.work(5)
+
+broken_do_work(WorkingHard())
 ```
-Writable.register_implementation(file)
-```
+
+In the above code, `worker` will be replaced by the interface, and the attempt
+to use `dumpx`, which is not part of the interface, will fail, even though the
+passed object does support that attribute.
+
+In optimised Python, `broken_do_worker` will use the original object, and
+should run faster without the intervening interface replacement.  In this case,
+the code will work with the current implementation, but may fail if a different
+object, that does not support `dumpx`, is passed.  Hopefully, by using `jute`
+this bug was caught during development.
