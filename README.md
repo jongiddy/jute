@@ -8,23 +8,17 @@ syntactical compatibility to indicate semantic compatibility.
 Interfaces provide a way to indicate semantic compatibility
 directly.
 
-Most existing interface modules for Python (e.g. `abc`,
-and `zope.interface`) check that implementing classes provide all the
-attributes specified in the interface.  But they ignore the other side
-of the contract, failing to ensure that the receiver of the interface
-only calls operations specified in the interface.  This module checks
-both, ensuring that called code will work with any provider of the
-interface, not just the one with which it was tested.
+Most existing interface modules for Python (e.g. `abc` and `zope.interface`)
+check that implementing classes provide all the attributes specified in the
+interface.  But they ignore the other side of the contract, failing to ensure
+that the receiver of the interface only calls operations specified in the
+interface.  This module checks both, ensuring that called code will work with
+any provider of the interface, not just the one with which it was tested.
 
-Interfaces have minimal impact on the implementing classes.  Although
-implementing classes must subclass an InterfaceProvider class, that
-class is completely empty, adding no additional attributes or
-metaclasses to the implementing class.
-
-The interface hierarchy and the implementer hierarchy are completely
-distinct, so you don't get tied up in knots getting a sub-class to
-implement a sub-interface when the super-class already implements the
-super-interface.
+Interfaces have minimal impact on the implementing classes.  The interface
+hierarchy and the implementer hierarchy are completely distinct, so you don't
+get tied up in knots getting a sub-class to implement a sub-interface when the
+super-class already implements the super-interface.
 
 ## Define an Interface
 
@@ -74,8 +68,7 @@ registration.
 
 Sometimes a class does not define all interface attributes, but instances of
 the class will, typically through the `__init__` or `__getattr__` methods.  In
-this case, the interface provides a `Provider` attribute that can be
-subclassed.
+this case, subclass the interface's `Provider` attribute.
 
 ```python
 class SquareWork(Workable.Provider):
@@ -89,8 +82,8 @@ class SquareWork(Workable.Provider):
         raise AttributeError(name)
 ```
 
-An interface's `Provider` is an empty class, and will not affect operation of
-the implementation.
+An interface's `Provider` is an empty class, adding no additional attributes or
+metaclasses to the implementing class.
 
 Subclassing an interface's Provider attribute indicates a claim to implement
 the interface.  This claim is verified during each conversion to the interface,
