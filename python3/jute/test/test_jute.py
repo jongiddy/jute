@@ -496,10 +496,27 @@ class ImplementedByTests(unittest.TestCase):
 
     def test_not_implemented_by_registered_instance(self):
         """An interface is not implemented by a registered class instance."""
-        self.assertFalse(Foo.implemented_by(RegisteredImplementationFooBarBaz()))
+        self.assertFalse(
+            Foo.implemented_by(RegisteredImplementationFooBarBaz()))
 
     def test_not_implemented_by_non_provider(self):
         """An interface is not implemented by a non-providing class."""
         class C:
             foo = 1
         self.assertFalse(Foo.implemented_by(C))
+
+
+class CastTest(unittest.TestCase):
+
+    def test_provider_cast(self):
+        class FBB(FooBarBaz, FooBaz.Provider):
+
+            """Class that implements FooBar and FooBaz."""
+            pass
+
+        foobarbaz = FBB()
+        foobar = FooBar(foobarbaz)
+        with self.assertRaises(AttributeError):
+            foobar.baz()
+        foobaz = FooBaz.cast(foobar)
+        foobaz.baz()

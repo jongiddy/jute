@@ -246,6 +246,14 @@ class InterfaceMetaclass(type):
         # create a wrapper object to enforce only this interface.
         return super().__call__(obj)
 
+    def cast(interface, source):
+        """Attempt to cast one interface to another.
+
+        Whether this works depends on whether the underlying object supports
+        this interface.
+        """
+        return interface(underlying_object(source))
+
     def raise_if_not_provided_by(interface, obj, validate=None):
         """Check if object provides the interface.
 
@@ -352,6 +360,14 @@ class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
             raise AttributeError(
                 "{!r} interface has no attribute {!r}".format(
                     my('__class__').__name__, name))
+
+
+def underlying_object(interface):
+    """Obtain the non-interface object wrapped by this interface."""
+    obj = interface
+    while isinstance(obj, Interface):
+        obj = object.__getattribute__(obj, 'provider')
+    return obj
 
 
 class Dynamic(Interface):
