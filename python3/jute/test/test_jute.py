@@ -509,7 +509,7 @@ class ImplementedByTests(unittest.TestCase):
 
 class CastTest(unittest.TestCase):
 
-    def test_provider_cast(self):
+    def test_provider_valid_cast(self):
         class FooBarBaz(FooBarSubclassProviderBaz, IFooBaz.Provider):
 
             """Class that implements IFooBar and IFooBaz."""
@@ -520,6 +520,13 @@ class CastTest(unittest.TestCase):
             foobar.baz()
         foobaz = IFooBaz.cast(foobar)
         foobaz.baz()
+
+    def test_provider_invalid_cast(self):
+        """Cannot cast to interface not supported by underlying object."""
+        foobarbaz = FooBarSubclassProviderBaz()
+        foobar = IFooBar(foobarbaz)
+        with self.assertRaises(TypeError):
+            IFooBaz.cast(foobar)
 
 
 class SupportedByTest(unittest.TestCase):
