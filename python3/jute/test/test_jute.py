@@ -491,13 +491,14 @@ class ImplementedByTests(unittest.TestCase):
         self.assertTrue(IFoo.implemented_by(Foo))
 
     def test_not_implemented_by_provider_instance(self):
-        """An interface is not implemented by a provider instance."""
-        self.assertFalse(IFoo.implemented_by(FooBarSubclassProviderBaz()))
+        """A provider instance is not valid with implemented_by."""
+        with self.assertRaises(TypeError):
+            IFoo.implemented_by(FooBarSubclassProviderBaz())
 
     def test_not_implemented_by_registered_instance(self):
-        """An interface is not implemented by a registered class instance."""
-        self.assertFalse(
-            IFoo.implemented_by(FooBarRegisteredImplementationBaz()))
+        """A registered instance is not valid with implemented_by."""
+        with self.assertRaises(TypeError):
+            IFoo.implemented_by(FooBarRegisteredImplementationBaz())
 
     def test_not_implemented_by_non_provider(self):
         """An interface is not implemented by a non-providing class."""

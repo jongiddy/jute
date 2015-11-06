@@ -337,13 +337,10 @@ class InterfaceMetaclass(type):
         """
         # Contrast this function with `provided_by`. Note that Dynamic Provider
         # classes cannot dynamically claim to implement an interface.
-        try:
-            return (
-                issubclass(cls, interface.verified) or
-                issubclass(cls, interface.unverified)
-            )
-        except TypeError:
-            return False
+        return (
+            issubclass(cls, interface.verified) or
+            issubclass(cls, interface.unverified)
+        )
 
 
 class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
