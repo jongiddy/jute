@@ -53,7 +53,7 @@ class LineBufferedWritable(BufferedWritable):
     """
 
 # need line buffering here
-if LineBufferedWritable.provided_by(out):
+if LineBufferedWritable.supported_by(out):
     out.write(buf)
 else:
     # more expensive operation

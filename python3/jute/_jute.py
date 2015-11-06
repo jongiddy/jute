@@ -313,6 +313,13 @@ class InterfaceMetaclass(type):
                 obj.provides_interface(interface)
             )
 
+    def supported_by(interface, obj):
+        """Check if underlying object claims to provide the interface.
+
+        This is useful for feature checks with marker interfaces.
+        """
+        return interface.provided_by(underlying_object(obj))
+
     def register_implementation(interface, cls):
         """Check if a provider implements the interface, and register it."""
         issubclass(cls, cls)      # ensure cls can appear on both sides

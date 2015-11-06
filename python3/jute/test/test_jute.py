@@ -520,3 +520,13 @@ class CastTest(unittest.TestCase):
             foobar.baz()
         foobaz = FooBaz.cast(foobar)
         foobaz.baz()
+
+
+class SupportedByTest(unittest.TestCase):
+
+    def test_supported_by(self):
+        fbb = FooBarBaz()
+        foo = Foo(fbb)
+        self.assertFalse(FooBar.provided_by(foo))
+        self.assertTrue(FooBar.supported_by(foo))
+
