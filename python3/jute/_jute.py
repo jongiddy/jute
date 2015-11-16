@@ -199,6 +199,13 @@ class InterfaceMetaclass(type):
                     return next(my(self, 'provider'))
                 class_attributes[key] = proxy_function
                 provider_attributes.add(key)
+            elif key == '__call__':
+                # call() is the same as iter() but takes parameters
+                def proxy_function(self, *args, **kwargs):
+                    my = object.__getattribute__
+                    return my(self, 'provider')(*args, **kwargs)
+                class_attributes[key] = proxy_function
+                provider_attributes.add(key)
             elif key.startswith('__'):
                 # Special methods, e.g. __iter__, can be called
                 # directly on an instance without going through
