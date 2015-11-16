@@ -137,6 +137,43 @@ def missing_attributes(obj, attributes):
     return missing
 
 
+_getattribute = object.__getattribute__
+
+
+def mkdefault(name):
+    def handle(self, *args, **kw):
+        method = getattr(_getattribute(self, 'provider'), name)
+        return method(*args, **kw)
+    return handle
+
+
+def handle_call(self, *args, **kwargs):
+    return _getattribute(self, 'provider')(*args, **kwargs)
+
+
+def handle_iter(self):
+    # Calling `iter()` or `for` bypasses the getattribute
+    # machinery. To ensure that the interface fails in the
+    # same way as the original instance, create a special
+    # proxy for `__iter__`.  This knobbling of an interface,
+    # which would otherwise succeed, is necessary to avoid
+    # new errors occurring in production code if the user
+    # wraps interface casting in 'if __debug__:'.
+    return iter(_getattribute(self, 'provider'))
+
+
+def handle_next(self):
+    return next(_getattribute(self, 'provider'))
+
+
+SPECIAL_METHODS = {
+    '__call__': handle_call,
+    '__iter__': handle_iter,
+    '__next__': handle_next,
+    '__str__': mkdefault('__str__')
+}
+
+
 class InterfaceMetaclass(type):
 
     KEPT = frozenset((
@@ -175,54 +212,16 @@ class InterfaceMetaclass(type):
                 # A few attributes need to be kept pointing to the
                 # interface object.
                 class_attributes[key] = value
-            elif key == '__iter__':
-                # Calling `iter()` or `for` bypasses the getattribute
-                # machinery. To ensure that the interface fails in the
-                # same way as the original instance, create a special
-                # proxy for `__iter__`.  This knobbling of an interface,
-                # which would otherwise succeed, is necessary to avoid
-                # new errors occurring in production code if the user
-                # wraps interface casting in 'if __debug__:'.
-                def proxy_function(self):
-                    my = object.__getattribute__
-                    return iter(my(self, 'provider'))
-                class_attributes[key] = proxy_function
-                # Also add the name to `provider_attributes` to ensure
-                # that `__getattribute__` does not reject the name for
-                # the cases where Python does go through the usual
-                # process, e.g. a literal `x.__iter__`
-                provider_attributes.add(key)
-            elif key == '__next__':
-                # next() is the same as iter()
-                def proxy_function(self):
-                    my = object.__getattribute__
-                    return next(my(self, 'provider'))
-                class_attributes[key] = proxy_function
-                provider_attributes.add(key)
-            elif key == '__call__':
-                # call() is the same as iter() but takes parameters
-                def proxy_function(self, *args, **kwargs):
-                    my = object.__getattribute__
-                    return my(self, 'provider')(*args, **kwargs)
-                class_attributes[key] = proxy_function
-                provider_attributes.add(key)
-            elif key.startswith('__'):
-                # Special methods, e.g. __iter__, can be called
-                # directly on an instance without going through
-                # __getattribute__.  For example, `for i in x:` will
-                # call `x.__iter__()` without resolving the name in the
-                # usual way.  Hence, we need to create these functions
-                # directly on the class.
-                def create_proxy_function(name):
-                    # Creating the function inside another function
-                    # creates a closure in which `name` stays set to its
-                    # current value, for use inside the inner function.
-                    def proxy_function(self, *args, **kw):
-                        my = object.__getattribute__
-                        method = getattr(my(self, 'provider'), name)
-                        return method(*args, **kw)
-                    return proxy_function
-                class_attributes[key] = create_proxy_function(key)
+            elif key in SPECIAL_METHODS:
+                # Special methods (e.g. __call__, __iter__) bypass the usual
+                # getattribute machinery. To ensure that the interface behaves
+                # in the same way as the original instance, create the special
+                # method on the Interface object, which acts in the same way
+                # as the original object.  It is important to ensure that
+                # interfaces work the same as the wrapped object, to avoid new
+                # errors occurring in production code if the user wraps
+                # interface casting in 'if __debug__:'.
+                class_attributes[key] = SPECIAL_METHODS[key]
                 # Also add the name to `provider_attributes` to ensure
                 # that `__getattribute__` does not reject the name for
                 # the cases where Python does go through the usual
@@ -377,7 +376,7 @@ def underlying_object(interface):
     """Obtain the non-interface object wrapped by this interface."""
     obj = interface
     while isinstance(obj, Interface):
-        obj = object.__getattribute__(obj, 'provider')
+        obj = _getattribute(obj, 'provider')
     return obj
 
 
