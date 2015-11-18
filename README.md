@@ -3,16 +3,16 @@
 Yet another interface module for Python 3.
 
 Although duck typing is generally considered the Pythonic way of dealing with
-object compatibility, it makes the assumption that syntactic compatibility
-indicates semantic compatibility.  Interfaces provide a way to indicate
-semantic compatibility directly.
+object compatibility, it assumes that syntactic compatibility implies semantic
+compatibility.  Interfaces provide an explicit way to express semantic
+compatibility.
 
 Most existing interface modules for Python (e.g. `abc` and `zope.interface`)
 check that implementing classes provide all the attributes specified in the
 interface.  But they ignore the other side of the contract, failing to ensure
 that the receiver of the interface only calls operations specified in the
-interface.  This module checks both, ensuring that code will work with any
-provider of the interface, not just the implementation with which it was tested.
+interface.  The `jute` module checks both, ensuring that code works with any
+provider of the interface, not just the provider with which it was tested.
 
 Jute interfaces have minimal impact on the implementing classes.  The interface
 hierarchy and the implementer hierarchy are completely distinct, so you don't
@@ -42,8 +42,9 @@ class BufferedWritable(Writable):
 Interface `BufferedWritable` requires both `write` and `flush` attributes to be
 provided.
 
-Objects providing the same syntax, but different semantics can be represented
-by empty interfaces, adding no attributes, but more specific semantics.
+Objects can provide the same syntactical interface, but different semantics.
+These differences can be represented by interface hierarchies with no
+additional syntax:
 
 ```python
 class LineBufferedWritable(BufferedWritable):
