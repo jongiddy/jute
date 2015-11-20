@@ -197,14 +197,18 @@ class InterfaceMetaclass(type):
                 BaseInterfaceProviders.append(base.Provider)
                 # This interface provides all attributes from the base
                 # interface
-                provider_attributes |= base.provider_attributes
+                provider_attributes |= base._provider_attributes
 
-        class InterfaceProvider(*BaseInterfaceProviders):
-            # Subclassing this class indicates that the class implements
-            # the interface.  Since this class inherits the provider
-            # classes of super-interfaces, it also indicates that the
-            # class implements those interfaces as well.
-            pass
+        class Provider(*BaseInterfaceProviders):
+
+            """Subclass this to express that instances provide interface.
+
+            Subclassing this class indicates that the class implements
+            the interface.  Since this class inherits the provider
+            classes of super-interfaces, it also indicates that the
+            class implements those interfaces as well.
+            """
+
         for key, value in dct.items():
             # Almost all attributes on the interface are mapped to
             # return the equivalent attributes on the wrapped object.
@@ -231,13 +235,13 @@ class InterfaceMetaclass(type):
                 # All other attributes are simply mapped using
                 # `__getattribute__`.
                 provider_attributes.add(key)
-        class_attributes['Provider'] = InterfaceProvider
-        class_attributes['provider_attributes'] = provider_attributes
+        class_attributes['Provider'] = Provider
+        class_attributes['_provider_attributes'] = provider_attributes
         interface = super().__new__(meta, name, bases, class_attributes)
         # An object wrapped by (a subclass of) the interface is
         # guaranteed to provide the matching attributes.
-        interface.verified = (interface,)
-        interface.unverified = (interface.Provider,)
+        interface._verified = (interface,)
+        interface._unverified = (interface.Provider,)
         return interface
 
     def __call__(interface, obj, validate=None):
@@ -266,16 +270,16 @@ class InterfaceMetaclass(type):
         :raise: an informative error if not. For example, a
         non-implemented attribute is returned in the exception.
         """
-        if isinstance(obj, interface.verified):
+        if isinstance(obj, interface._verified):
             # an instance of a class that has been verified to provide
             # the interface, so it must support all operations
             if validate:
                 missing = missing_attributes(
-                    obj, interface.provider_attributes)
+                    obj, interface._provider_attributes)
                 if missing:
                     raise InterfaceConformanceError(obj, missing)
         elif (
-            isinstance(obj, interface.unverified) or
+            isinstance(obj, interface._unverified) or
             isinstance(obj, (Dynamic, Dynamic.Provider)) and
                 obj.provides_interface(interface)
         ):
@@ -288,7 +292,7 @@ class InterfaceMetaclass(type):
             # validating.
             if validate is None and __debug__ or validate:
                 missing = missing_attributes(
-                    obj, interface.provider_attributes)
+                    obj, interface._provider_attributes)
                 if missing:
                     raise InterfaceConformanceError(obj, missing)
         else:
@@ -302,10 +306,10 @@ class InterfaceMetaclass(type):
         for base in interface.__mro__:
             if (
                 issubclass(base, Interface) and
-                cls not in base.verified and
-                cls not in base.unverified
+                cls not in base._verified and
+                cls not in base._unverified
             ):
-                base.unverified += (cls,)
+                base._unverified += (cls,)
 
     def provided_by(interface, obj):
         """Check if object claims to provide the interface.
@@ -313,8 +317,8 @@ class InterfaceMetaclass(type):
         :return: True if interface is provided by the object, else False.
         """
         return (
-            isinstance(obj, interface.verified) or
-            isinstance(obj, interface.unverified) or
+            isinstance(obj, interface._verified) or
+            isinstance(obj, interface._unverified) or
             isinstance(obj, (Dynamic, Dynamic.Provider)) and
                 obj.provides_interface(interface)
             )
@@ -329,12 +333,12 @@ class InterfaceMetaclass(type):
     def register_implementation(interface, cls):
         """Check if a provider implements the interface, and register it."""
         issubclass(cls, cls)      # ensure cls can appear on both sides
-        missing = missing_attributes(cls, interface.provider_attributes)
+        missing = missing_attributes(cls, interface._provider_attributes)
         if missing:
             raise InterfaceConformanceError(cls, missing)
         for base in interface.__mro__:
-            if issubclass(base, Interface) and cls not in base.verified:
-                base.verified += (cls,)
+            if issubclass(base, Interface) and cls not in base._verified:
+                base._verified += (cls,)
 
     def implemented_by(interface, cls):
         """Check if class claims to provide the interface.
@@ -344,8 +348,8 @@ class InterfaceMetaclass(type):
         # Contrast this function with `provided_by`. Note that Dynamic Provider
         # classes cannot dynamically claim to implement an interface.
         return (
-            issubclass(cls, interface.verified) or
-            issubclass(cls, interface.unverified)
+            issubclass(cls, interface._verified) or
+            issubclass(cls, interface._unverified)
         )
 
 
@@ -364,7 +368,7 @@ class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
         it from the wrapped object.
         """
         my = super().__getattribute__
-        if name in my('provider_attributes'):
+        if name in my('_provider_attributes'):
             return getattr(my('provider'), name)
         else:
             raise AttributeError(
