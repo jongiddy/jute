@@ -164,14 +164,20 @@ def handle_call(self, *args, **kwargs):
     return _getattribute(self, 'provider')(*args, **kwargs)
 
 
+def handle_getattribute(self, name):
+    if name in _getattribute(self, '_provider_attributes'):
+        return getattr(_getattribute(self, 'provider'), name)
+    else:
+        raise AttributeError(
+            "{!r} interface has no attribute {!r}".format(
+                _getattribute(self, '__class__').__name__, name))
+
+
+def handle_init(self, provider):
+    self.provider = provider
+
+
 def handle_iter(self):
-    # Calling `iter()` or `for` bypasses the getattribute
-    # machinery. To ensure that the interface fails in the
-    # same way as the original instance, create a special
-    # proxy for `__iter__`.  This knobbling of an interface,
-    # which would otherwise succeed, is necessary to avoid
-    # new errors occurring in production code if the user
-    # wraps interface casting in 'if __debug__:'.
     return iter(_getattribute(self, 'provider'))
 
 
@@ -187,6 +193,8 @@ def handle_repr(self):
 
 SPECIAL_METHODS = {
     '__call__': handle_call,
+    '__getattribute__': handle_getattribute,
+    '__init__': handle_init,
     '__iter__': handle_iter,
     '__next__': handle_next,
     '__str__': mkdefault('__str__'),
@@ -198,8 +206,6 @@ class InterfaceMetaclass(type):
 
     KEPT = frozenset((
         '__module__', '__qualname__',
-        '__init__', '__del__',
-        '__getattribute__',
     ))
 
     def __new__(meta, name, bases, dct):
@@ -379,23 +385,14 @@ class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
 
     def __init__(self, provider):
         """Wrap an object with an interface object."""
-        self.provider = provider
 
     def __getattribute__(self, name):
-        """
-        Check and return an attribute for the interface.
+        """Check and return an attribute for the interface.
 
         When an interface object has an attribute accessed, check that
         the attribute is specified by the interface, and then retrieve
         it from the wrapped object.
         """
-        my = super().__getattribute__
-        if name in my('_provider_attributes'):
-            return getattr(my('provider'), name)
-        else:
-            raise AttributeError(
-                "{!r} interface has no attribute {!r}".format(
-                    my('__class__').__name__, name))
 
     def __repr__(self):
         """Return representation of interface."""

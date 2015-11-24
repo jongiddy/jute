@@ -39,7 +39,7 @@ class ReprTests(unittest.TestCase):
         interface object.
         """
         with self.assertRaises(RedefinedAttributeError):
-            class DefinesRepr(Interface):
+            class RedefinesRepr(Interface):
 
                 def __repr__(self):
                     pass
