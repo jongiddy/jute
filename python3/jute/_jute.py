@@ -117,6 +117,19 @@ class InterfaceConformanceError(Exception):
             self.obj, attribute, ', '.join(repr(m) for m in self.missing))
 
 
+class RedefinedAttributeError(Exception):
+
+    """Interface re-defines an attribute defined in a super-interface.
+
+    Interfaces provide empty definitions. Usually, it doesn't matter if
+    we override them, but for special methods, which have a body, we
+    need to keep any base implementation.  So interfaces effectively
+    have a "first definition wins" rather than usual class "last
+    definition wins" approach, to avoid wiping out the functions that do
+    need to be defined in the Interface object.
+    """
+
+
 # Declare the base classes for the `Interface` class here so the
 # metaclass `__new__` method can avoid running
 # `issubclass(base, Interface)` during the creation of the `Interface`
@@ -166,11 +179,18 @@ def handle_next(self):
     return next(_getattribute(self, 'provider'))
 
 
+def handle_repr(self):
+    return '<{}.{}({!r})>'.format(
+        _getattribute(self, '__module__'),
+        _getattribute(self, '__class__').__qualname__,
+        _getattribute(self, 'provider'))
+
 SPECIAL_METHODS = {
     '__call__': handle_call,
     '__iter__': handle_iter,
     '__next__': handle_next,
-    '__str__': mkdefault('__str__')
+    '__str__': mkdefault('__str__'),
+    '__repr__': handle_repr,
 }
 
 
@@ -214,8 +234,10 @@ class InterfaceMetaclass(type):
             # return the equivalent attributes on the wrapped object.
             if key in meta.KEPT:
                 # A few attributes need to be kept pointing to the
-                # interface object.
+                # new interface object.
                 class_attributes[key] = value
+            elif key in provider_attributes:
+                raise RedefinedAttributeError(repr(key))
             elif key in SPECIAL_METHODS:
                 # Special methods (e.g. __call__, __iter__) bypass the usual
                 # getattribute machinery. To ensure that the interface behaves
@@ -374,6 +396,9 @@ class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
             raise AttributeError(
                 "{!r} interface has no attribute {!r}".format(
                     my('__class__').__name__, name))
+
+    def __repr__(self):
+        """Return representation of interface."""
 
 
 def underlying_object(interface):
