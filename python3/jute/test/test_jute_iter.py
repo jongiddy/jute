@@ -93,6 +93,7 @@ class GeneratedIter(Iterable.Provider):
             def f():
                 return iter(count_to_5)
             return f
+        raise AttributeError(name)
 
 
 class GeneratedIterTestMixin(IterTestMixin):

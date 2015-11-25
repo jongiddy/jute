@@ -39,7 +39,7 @@ class StrInstanceTests(StringTestMixin, unittest.TestCase):
         return FooString()
 
 
-class NextInterfaceTests(StringTestMixin, unittest.TestCase):
+class StrInterfaceTests(StringTestMixin, unittest.TestCase):
 
     def get_test_object(self):
         return StringLike(FooString())
