@@ -174,7 +174,9 @@ def handle_getattribute(self, name):
 
 
 def handle_init(self, provider):
-    self.provider = provider
+    # Use superclass __setattr__ in case interface defines __setattr__,
+    # which points self's __setattr__ to underlying object.
+    object.__setattr__(self, 'provider', provider)
 
 
 def handle_iter(self):
@@ -183,6 +185,10 @@ def handle_iter(self):
 
 def handle_next(self):
     return next(_getattribute(self, 'provider'))
+
+
+def handle_setattr(self, name, value):
+    return setattr(_getattribute(self, 'provider'), name, value)
 
 
 def handle_repr(self):
@@ -197,6 +203,7 @@ SPECIAL_METHODS = {
     '__init__': handle_init,
     '__iter__': handle_iter,
     '__next__': handle_next,
+    '__setattr__': handle_setattr,
     '__str__': mkdefault('__str__'),
     '__repr__': handle_repr,
 }
