@@ -119,15 +119,7 @@ class InterfaceConformanceError(Exception):
 
 class RedefinedAttributeError(Exception):
 
-    """Interface re-defines an attribute defined in a super-interface.
-
-    Interfaces provide empty definitions. Usually, it doesn't matter if
-    we override them, but for special methods, which have a body, we
-    need to keep any base implementation.  So interfaces effectively
-    have a "first definition wins" rather than usual class "last
-    definition wins" approach, to avoid wiping out the functions that do
-    need to be defined in the Interface object.
-    """
+    """Interface re-defines an attribute defined in a super-interface."""
 
 
 # Declare the base classes for the `Interface` class here so the
@@ -250,6 +242,15 @@ class InterfaceMetaclass(type):
                 # new interface object.
                 class_attributes[key] = value
             elif key in provider_attributes:
+                # Interfaces provide empty definitions. Usually, it doesn't
+                # matter if we override them, but for special methods, which
+                # have a body, we need to keep any base implementation.  So
+                # interfaces effectively have a "first definition wins" rather
+                # than usual class "last definition wins" approach, to avoid
+                # wiping out the functions that do need to be defined in the
+                # Interface object.  Currently, we raise an exception if a
+                # function is redefined.  Later, we could check for
+                # compatibility of the function signatures.
                 raise RedefinedAttributeError(repr(key))
             elif key in SPECIAL_METHODS:
                 # Special methods (e.g. __call__, __iter__) bypass the usual
