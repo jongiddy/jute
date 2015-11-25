@@ -78,6 +78,7 @@ class GeneratedCallable(Callable.Provider):
             def f():
                 return 0
             return f
+        raise AttributeError(name)
 
 
 class GeneratedCallTestMixin(CallTestMixin):

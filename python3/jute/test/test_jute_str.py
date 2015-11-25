@@ -75,6 +75,7 @@ class GeneratedStr(StringLike.Provider):
             def f():
                 return 'foo'
             return f
+        raise AttributeError(name)
 
 
 class GeneratedStrTestMixin(StringTestMixin):

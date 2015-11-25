@@ -90,6 +90,7 @@ class GeneratedNext(Iterator.Provider):
             def f():
                 return 0
             return f
+        raise AttributeError(name)
 
     def __iter__(self):
         return self
