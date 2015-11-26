@@ -156,6 +156,10 @@ def handle_call(self, *args, **kwargs):
     return _getattribute(self, 'provider')(*args, **kwargs)
 
 
+def handle_dir(self):
+    return _getattribute(self, '_provider_attributes')
+
+
 def handle_getattribute(self, name):
     if name in _getattribute(self, '_provider_attributes'):
         return getattr(_getattribute(self, 'provider'), name)
@@ -191,6 +195,7 @@ def handle_repr(self):
 
 SPECIAL_METHODS = {
     '__call__': handle_call,
+    '__dir__': handle_dir,
     '__getattribute__': handle_getattribute,
     '__init__': handle_init,
     '__iter__': handle_iter,
@@ -393,6 +398,9 @@ class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
 
     def __init__(self, provider):
         """Wrap an object with an interface object."""
+
+    def __dir__(self):
+        """Return the supported attributes of this interface."""
 
     def __getattribute__(self, name):
         """Check and return an attribute for the interface.
