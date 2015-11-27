@@ -96,6 +96,10 @@ class WhenInterfaceHasAttribute:
         self.inf.foo = 9
         self.assertEqual(self.obj.foo, 9)
 
+    def test_del_attribute_in_interface(self):
+        with self.assertRaises(InterfaceConformanceError):
+            del self.inf.foo
+
 
 class WhenInterfaceDoesNotHaveAttribute:
 
@@ -106,6 +110,10 @@ class WhenInterfaceDoesNotHaveAttribute:
     def test_set_attribute_not_in_interface(self):
         with self.assertRaises(AttributeError):
             self.inf.bar = 9
+
+    def test_del_attribute_not_in_interface(self):
+        with self.assertRaises(AttributeError):
+            del self.inf.bar
 
 
 def mktest(cls):
@@ -139,4 +147,3 @@ class FooProviderRegisteredTests(mktest(FooProviderRegistered)):
 
 class FooDynamicTests(mktest(FooDynamic)):
     pass
-

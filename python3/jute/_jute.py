@@ -76,6 +76,15 @@ satisfying the``Writable`` interface, using
 """
 
 
+def mkmessage(obj, missing):
+    if len(missing) == 1:
+        attribute = 'attribute'
+    else:
+        attribute = 'attributes'
+    return '{} does not provide {} {}'.format(
+        obj, attribute, ', '.join(repr(m) for m in missing))
+
+
 class InterfaceConformanceError(Exception):
 
     """Object does not conform to interface specification.
@@ -104,17 +113,11 @@ class InterfaceConformanceError(Exception):
     interface.  Using a different exception causes less confusion.
     """
 
-    def __init__(self, obj, missing):
-        self.obj = obj
-        self.missing = missing
+    def __init__(self, message):
+        self.message = message
 
     def __str__(self):
-        if len(self.missing) == 1:
-            attribute = 'attribute'
-        else:
-            attribute = 'attributes'
-        return '{} does not provide {} {}'.format(
-            self.obj, attribute, ', '.join(repr(m) for m in self.missing))
+        return self.message
 
 
 # Declare the base classes for the `Interface` class here so the
@@ -149,6 +152,16 @@ def mkdefault(name):
 
 def handle_call(self, *args, **kwargs):
     return _getattribute(self, 'provider')(*args, **kwargs)
+
+
+def handle_delattr(self, name):
+    if name in _getattribute(self, '_provider_attributes'):
+        raise InterfaceConformanceError(
+            'Cannot delete attribute {!r} through interface'.format(name))
+    else:
+        raise AttributeError(
+            "{!r} interface has no attribute {!r}".format(
+                _getattribute(self, '__class__').__name__, name))
 
 
 def handle_dir(self):
@@ -195,6 +208,7 @@ def handle_repr(self):
 
 SPECIAL_METHODS = {
     '__call__': handle_call,
+    '__delattr__': handle_delattr,
     '__dir__': handle_dir,
     '__getattribute__': handle_getattribute,
     '__init__': handle_init,
@@ -307,7 +321,7 @@ class InterfaceMetaclass(type):
                 missing = missing_attributes(
                     obj, interface._provider_attributes)
                 if missing:
-                    raise InterfaceConformanceError(obj, missing)
+                    raise InterfaceConformanceError(mkmessage(obj, missing))
         elif (
             isinstance(obj, interface._unverified) or
             isinstance(obj, (Dynamic, Dynamic.Provider)) and
@@ -324,7 +338,7 @@ class InterfaceMetaclass(type):
                 missing = missing_attributes(
                     obj, interface._provider_attributes)
                 if missing:
-                    raise InterfaceConformanceError(obj, missing)
+                    raise InterfaceConformanceError(mkmessage(obj, missing))
         else:
             raise TypeError(
                 'Object {} does not provide interface {}'. format(
@@ -365,7 +379,7 @@ class InterfaceMetaclass(type):
         issubclass(cls, cls)      # ensure cls can appear on both sides
         missing = missing_attributes(cls, interface._provider_attributes)
         if missing:
-            raise InterfaceConformanceError(cls, missing)
+            raise InterfaceConformanceError(mkmessage(cls, missing))
         for base in interface.__mro__:
             if issubclass(base, Interface) and cls not in base._verified:
                 base._verified += (cls,)
@@ -407,6 +421,14 @@ class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
 
         Check that the attribute is specified by the interface, and then
         set it on the wrapped object.
+        """
+
+    def __delattr__(self, name):
+        """Fail to delete an attribute.
+
+        Interface attributes cannot be deleted through the interface, as that
+        would make the interface invalid.  Non-interface attributes cannot be
+        seen through the interface, so cannot be deleted.
         """
 
 
