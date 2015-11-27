@@ -179,7 +179,12 @@ def handle_next(self):
 
 
 def handle_setattr(self, name, value):
-    return setattr(_getattribute(self, 'provider'), name, value)
+    if name in _getattribute(self, '_provider_attributes'):
+        return setattr(_getattribute(self, 'provider'), name, value)
+    else:
+        raise AttributeError(
+            "{!r} interface has no attribute {!r}".format(
+                _getattribute(self, '__class__').__name__, name))
 
 
 def handle_repr(self):
@@ -383,6 +388,9 @@ class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
     def __init__(self, provider):
         """Wrap an object with an interface object."""
 
+    def __repr__(self):
+        """Return representation of interface."""
+
     def __dir__(self):
         """Return the supported attributes of this interface."""
 
@@ -394,8 +402,12 @@ class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
         it from the wrapped object.
         """
 
-    def __repr__(self):
-        """Return representation of interface."""
+    def __setattr__(self, name, value):
+        """Set an attribute on an interface.
+
+        Check that the attribute is specified by the interface, and then
+        set it on the wrapped object.
+        """
 
 
 def underlying_object(interface):

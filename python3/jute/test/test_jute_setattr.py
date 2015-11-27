@@ -8,6 +8,8 @@ class ISettable(Interface):
     def __setattr__(self, name, value):
         """Set an attribute."""
 
+    foo = int
+
 
 class SetAttrTestMixin:
 
@@ -38,6 +40,8 @@ class SetDash:
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name + '_', value)
+
+    foo = 5
 
 
 class SetAttrInstanceTests(SetAttrTestMixin, unittest.TestCase):
@@ -88,6 +92,8 @@ class GeneratedSetDash:
                 object.__setattr__(obj, name + '_', value)
             return f
         raise AttributeError(name)
+
+    foo = 5
 
 
 class GeneratedInstanceTests(GeneratedTestMixin, unittest.TestCase):
