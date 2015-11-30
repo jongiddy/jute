@@ -43,6 +43,8 @@ Module Reference
 
       Check if object claims to provide the interface.
 
+      :return: True if the object claims to provide the interface, or False otherwise.
+
    .. note::
 
       The remaining functions break the abstraction provided by interfaces,
@@ -72,12 +74,12 @@ Module Reference
 
 .. py:decorator:: implements(*interfaces)
 
-   Decorator to mark a class as implementing an interface.
+   Decorator to mark a class as implementing the supplied interfaces.
 
 
 .. py:class:: Dynamic(provider)
 
-    Interface to dynamically provide other interfaces.
+   Interface to dynamically provide other interfaces.
 
    .. py:method:: provides_interface(self, interface)
 
