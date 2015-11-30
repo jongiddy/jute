@@ -210,6 +210,12 @@ SPECIAL_METHODS = {
     '__call__': handle_call,
     '__delattr__': handle_delattr,
     '__dir__': handle_dir,
+    # If __getattribute__ raises an AttributeError, any __getattr__
+    # method (but not the implicit object.__getattr__) is then called.
+    # Keep things simple by not adding any __getattr__ method.  Adding
+    # __getattr__ to an an interface definition is OK, and works due to
+    # __getattribute__ implementation calling getattr() on the wrapped
+    # object.
     '__getattribute__': handle_getattribute,
     '__init__': handle_init,
     '__iter__': handle_iter,

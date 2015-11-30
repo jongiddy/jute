@@ -86,6 +86,14 @@ class FooDynamic(Dynamic.Provider):
 
 class WhenInterfaceHasAttribute:
 
+    def test_get_internal_attribute_fails(self):
+        """Caller cannot see the interface's hidden attributes."""
+        # Interface does have a provider attribute
+        object.__getattribute__(self.inf, 'provider')
+        # but it is hidden from normal attribute access
+        with self.assertRaises(AttributeError):
+            self.inf.provider
+
     def test_get_attribute_in_interface(self):
         self.assertEqual(
             result(lambda: self.obj.foo),
