@@ -368,8 +368,9 @@ class InterfaceMetaclass(type):
         """
         return (
             isinstance(obj, interface._verified) or
-            isinstance(obj, interface._unverified) or
-            isinstance(obj, (Dynamic, Dynamic.Provider)) and
+            isinstance(obj, interface._unverified) or (
+                isinstance(obj, Dynamic._verified) or
+                isinstance(obj, Dynamic._unverified)) and
                 obj.provides_interface(interface)
             )
 

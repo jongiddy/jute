@@ -77,7 +77,8 @@ an interface dynamically.  Dynamic implementations are declared using the
 
 .. code-block:: python
 
-   class PrintAttributeAccessWrapper(jute.Dynamic.Provider):
+   @implements(jute.Dynamic)
+   class PrintAttributeAccessWrapper:
        def __init__(self, wrapped):
            self.wrapped = wrapped
 

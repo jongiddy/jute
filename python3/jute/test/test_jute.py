@@ -538,4 +538,3 @@ class SupportedByTest(unittest.TestCase):
         self.assertTrue(IFooBar.supported_by(foo))
         # interface not supported if duck-typed, but not claimed
         self.assertFalse(IFooBaz.supported_by(foo))
-
