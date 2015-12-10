@@ -3,12 +3,18 @@ from distutils.core import setup
 GITHUB_URL = 'https://github.com/jongiddy/jute'
 VERSION = '0.1.5'
 
+
+def contents_of(filename):
+    with open(filename, encoding='utf-8') as f:
+        return f.read()
+
 setup(
     name='jute',
     packages=['jute'],
     package_dir={'jute': 'python3/jute'},
     version=VERSION,
     description='Interface module that verifies both providers and callers',
+    long_description=contents_of('README.rst'),
     keywords=['interface', 'polymorphism'],
     author='Jonathan Patrick Giddy',
     author_email='jongiddy@gmail.com',
