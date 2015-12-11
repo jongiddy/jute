@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 GITHUB_URL = 'https://github.com/jongiddy/jute'
-VERSION = '0.1.6'
+VERSION = '0.1.7'
 
 
 def contents_of(filename):
