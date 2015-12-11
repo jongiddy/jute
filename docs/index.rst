@@ -14,14 +14,12 @@ compatibility.
 Most existing interface modules for Python (e.g. ``abc`` and ``zope.interface``)
 check that implementing classes provide all the attributes specified in the
 interface.  But they ignore the other side of the contract, failing to ensure
-that the receiver of the interface only calls operations specified in the
-interface.  The ``jute`` module checks both, ensuring that code works with any
-provider of the interface, not just the provider with which it was tested.
+that the receiver of the interface only calls operations specified by the
+interface.
 
-Jute interfaces have minimal impact on the implementing classes.  The interface
-hierarchy and the implementer hierarchy are completely distinct, so you don't
-get tied up in knots getting a sub-class to implement a sub-interface when the
-super-class already implements the super-interface.
+The ``jute`` module allows verification of both providers of the interface and
+receivers of the interface, to ensure that code works with any provider of the
+interface, not just the provider with which it was tested.
 
 Contents:
 
