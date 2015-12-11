@@ -81,7 +81,9 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
             def foo(self):
                 return 1
 
-        self.assertTrue(IFoo.provided_by(FooDynamic()))
+        instance = FooDynamic()
+        self.assertTrue(IFoo.provided_by(instance))
+        IFoo(instance)
 
     def test_provided_provided_by(self):
         @provides(Dynamic)
@@ -93,7 +95,9 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
             def foo(self):
                 return 1
 
-        self.assertTrue(IFoo.provided_by(FooDynamic()))
+        instance = FooDynamic()
+        self.assertTrue(IFoo.provided_by(instance))
+        IFoo(instance)
 
     def test_registered_implementation_provided_by(self):
         class FooDynamic:
@@ -106,7 +110,9 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
 
         Dynamic.register_implementation(FooDynamic)
 
-        self.assertTrue(IFoo.provided_by(FooDynamic()))
+        instance = FooDynamic()
+        self.assertTrue(IFoo.provided_by(instance))
+        IFoo(instance)
 
     def test_provider_provided_by(self):
         class FooDynamic(Dynamic.Provider):
@@ -117,7 +123,9 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
             def foo(self):
                 return 1
 
-        self.assertTrue(IFoo.provided_by(FooDynamic()))
+        instance = FooDynamic()
+        self.assertTrue(IFoo.provided_by(instance))
+        IFoo(instance)
 
     def test_registered_provider_provided_by(self):
         class FooDynamic:
@@ -130,4 +138,6 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
 
         Dynamic.register_provider(FooDynamic)
 
-        self.assertTrue(IFoo.provided_by(FooDynamic()))
+        instance = FooDynamic()
+        self.assertTrue(IFoo.provided_by(instance))
+        IFoo(instance)

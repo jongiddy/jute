@@ -277,9 +277,10 @@ class InterfaceMetaclass(type):
                 if missing:
                     raise InterfaceConformanceError(mkmessage(obj, missing))
         elif (
-            isinstance(obj, interface._unverified) or
-            isinstance(obj, (Dynamic, Dynamic.Provider)) and
-                obj.provides_interface(interface)
+            isinstance(obj, interface._unverified) or (
+                isinstance(obj, Dynamic._verified) or
+                isinstance(obj, Dynamic._unverified)
+                ) and obj.provides_interface(interface)
         ):
             # The object claims to provide the interface, either by
             # subclassing the interface's provider class, or by
