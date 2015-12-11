@@ -20,7 +20,7 @@ For classes that define all attributes of an interface, decorate the class with
        def flush(self):
            sys.stdout.flush()
 
-If it is not possible to decorate a class, use the interface's
+If it is not possible to decorate the class, use the interface's
 ``register_implementation`` method to specify a class as an implementation of the
 interface.
 
@@ -28,19 +28,20 @@ interface.
 
    BufferedWritable.register_implementation(file)
 
-In either of the above cases, the interface is verified once, during
-registration.
+In either of the above cases, the interface is verified once,
+during class definition or registration.
 
 Register a class whose instances provide the interface
 ------------------------------------------------------
 
 Sometimes a class does not define all interface attributes, but instances of
 the class will, typically through the ``__init__`` or ``__getattr__`` methods.  In
-this case, subclass the interface's ``Provider`` attribute.
+this case, decorate the class with ``jute.provides``.
 
 .. code-block:: python
 
-   class ErrorWriter(BufferedWritable.Provider):
+   @jute.provides(BufferedWritable)
+   class ErrorWriter:
        def __init__(self):
            self.write = sys.stderr.write
        def __getattr__(self, name):
@@ -50,14 +51,7 @@ this case, subclass the interface's ``Provider`` attribute.
                return flush
            raise AttributeError(name)
 
-An interface's ``Provider`` attribute is an empty class, adding no additional
-attributes or metaclasses to the implementing class.
-
-Subclassing an interface's Provider attribute indicates a claim to implement
-the interface.  This claim is verified during each conversion to the interface,
-and hence is slower than registering an implementation.
-
-If it is not possible to subclass the class, use the interface's
+If it is not possible to decorate the class, use the interface's
 ``register_provider`` method to specify that class instances will provide the
 interface. Note that ``register_provider`` takes the class whose instances will
 provide the interface, not a class instance.
@@ -66,7 +60,11 @@ provide the interface, not a class instance.
 
    Writable.register_provider(ssl.SSLSocket)
 
-(Note, this particular class could also have used ``register_implementation``).
+This particular class could also have been registered using ``register_implementation``.
+
+The claim to provide an interface is verified during each conversion to the interface,
+and hence is slower than registering an implementation.
+
 
 Dynamically indicate that an instance provides the interface
 ------------------------------------------------------------

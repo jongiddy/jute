@@ -76,6 +76,15 @@ Module Reference
 
    Decorator to mark a class as implementing the supplied interfaces.
 
+   To implement an interface, the class must define all attributes in the interface.
+
+
+.. py:decorator:: provides(*interfaces)
+
+   Decorator to mark a class as providing the supplied interfaces.
+
+   To provide an interface, the class instances must define all attributes in the interface.
+
 
 .. py:class:: Dynamic(provider)
 

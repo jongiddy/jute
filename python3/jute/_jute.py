@@ -458,18 +458,25 @@ class Dynamic(Interface):
         or False when the interface is not provided.
         """
 
+# These decorators do not wrap the class. They simply run the appropriate
+# `register` method for each interface, and return the original class.  This
+# handily avoids many of the problems typical of wrapping decorators. See
+# http://blog.dscpl.com.au/2014/01/how-you-implemented-your-python.html
+
 
 def implements(*interfaces):
-    """Decorator to mark a class as implementing an interface.
-
-    The decorator does not wrap the class. It simply runs
-    `register_implementation` for each interface, and returns the
-    original class.  This handily avoids many of the problems typical of
-    wrapping decorators. See
-    http://blog.dscpl.com.au/2014/01/how-you-implemented-your-python.html
-    """
+    """Decorator to mark a class as implementing an interface."""
     def decorator(cls):
         for interface in interfaces:
             interface.register_implementation(cls)
+        return cls
+    return decorator
+
+
+def provides(*interfaces):
+    """Decorator to mark a class as providing an interface."""
+    def decorator(cls):
+        for interface in interfaces:
+            interface.register_provider(cls)
         return cls
     return decorator

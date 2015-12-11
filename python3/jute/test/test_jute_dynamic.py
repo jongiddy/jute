@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Dynamic, Interface, implements
+from jute import Dynamic, Interface, implements, provides
 
 
 class ProvidedByTests(unittest.TestCase):
@@ -20,6 +20,15 @@ class ProvidedByTests(unittest.TestCase):
                 return False
 
         self.assertTrue(Dynamic.provided_by(DynamicImplemented()))
+
+    def test_provided_provided_by(self):
+        @provides(Dynamic)
+        class DynamicProvided:
+
+            def provides_interface(self, interface):
+                return False
+
+        self.assertTrue(Dynamic.provided_by(DynamicProvided()))
 
     def test_registered_implementation_provided_by(self):
         class DynamicRegisteredImplementation:
@@ -64,6 +73,18 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
 
     def test_implemented_provided_by(self):
         @implements(Dynamic)
+        class FooDynamic:
+
+            def provides_interface(self, interface):
+                return interface.implemented_by(IFoo)
+
+            def foo(self):
+                return 1
+
+        self.assertTrue(IFoo.provided_by(FooDynamic()))
+
+    def test_provided_provided_by(self):
+        @provides(Dynamic)
         class FooDynamic:
 
             def provides_interface(self, interface):
