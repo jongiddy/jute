@@ -31,9 +31,5 @@ Contents:
    use
    reference
 
-
-Indices and tables
-==================
-
 * :ref:`search`
 

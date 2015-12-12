@@ -1,0 +1,4 @@
+optimised
+Pythonic
+subclassed
+subclassing

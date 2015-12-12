@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.abspath('../python3'))
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
+    'sphinxcontrib.spelling',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -286,3 +287,8 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# -- Options for spell-checking -------------------------------------------
+
+# File containing additional words to not flag as spelling errors.
+spelling_word_list_filename = 'spell-dict.txt'

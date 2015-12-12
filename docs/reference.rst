@@ -20,7 +20,7 @@ Module Reference
    It could also be considered an AttributeError, as when validation is
    off, that is the alternative exception (that might be) raised.
    However, future versions of this module may perform additional
-   validation to catch TypeError's (e.g. function paramete matching).
+   validation to catch TypeError's (e.g. function parameter matching).
 
 
 .. py:class:: Interface(provider)
