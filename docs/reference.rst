@@ -25,23 +25,31 @@ Module Reference
 
 .. py:class:: Interface(provider)
 
+   Class representing an interface.
+   An interface instance will only provide the attributes defined in the class definition.
+   To convert an object that provides an interface to an interface instance, call the constructor with the object that supports the interface.
+
    .. py:classmethod:: register_implementation(cls)
 
-      Check if a class implements the interface, and register it.
+      Verify that a class implements the interface, and register it.
+      An implementing class has all the attributes defined in the interface.
 
    .. py:classmethod:: implemented_by(cls)
 
-      Check if class claims to provide the interface.
+      Check if class claims to implement the interface.
 
       :return: True if interface is implemented by the class, else False.
 
    .. py:classmethod:: register_provider(cls)
 
-      Register a provider class to the interface.
+      Register a providing class to the interface.
+      A providing class does not have all the attributes defined in the interface, but its instances do.
 
    .. py:classmethod:: provided_by(obj)
 
       Check if object claims to provide the interface.
+      This will be true if the object's class implements or provides the interface.
+      It will also be true if the object's class implements or provides the ``Dynamic`` interface, and the object's ``provides_interface`` method returns ``True`` when passed this interface.
 
       :return: True if the object claims to provide the interface, or False otherwise.
 
@@ -55,10 +63,9 @@ Module Reference
       Check if underlying object claims to provide the interface.
 
       Although it allows the caller to see if the underlying object supports
-      any interface, since it does not provide access to the interface, its
-      main use is to perform feature checks for marker interfaces (interfaces
-      that have the same syntax, but different semantics to the supplied
-      interface).
+      an interface, it does not provide access to the interface, unless the interfaces contain attributes in common.
+      This makes it most useful for performing feature checks for marker interfaces
+      (interfaces that have the same syntax, but different semantics to the supplied interface).
 
       :return: True if the underlying object claims to provide the interface,
          or False otherwise.
