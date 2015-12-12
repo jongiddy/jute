@@ -34,4 +34,11 @@ setup(
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
+    extras_require={
+        'doc': [
+            "pyenchant",  # pre-requisite for sphinxcontrib-spelling
+            "sphinx",
+            "sphinxcontrib-spelling",
+        ],
+    },
 )
