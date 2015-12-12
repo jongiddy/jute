@@ -1,7 +1,12 @@
 from distutils.core import setup
+import sys
 
 GITHUB_URL = 'https://github.com/jongiddy/jute'
 VERSION = '0.1.8'
+
+
+if sys.version_info[0] < 3:
+    sys.exit('The jute package requires Python 3.')
 
 
 def contents_of(filename):
