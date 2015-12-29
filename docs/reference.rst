@@ -31,24 +31,28 @@ Module Reference
 
    .. py:classmethod:: register_implementation(cls)
 
-      Verify that a class implements the interface, and register it.
+      Register a class that provides the interface.
       An implementing class has all the attributes defined in the interface.
-
-   .. py:classmethod:: implemented_by(cls)
-
-      Check if class claims to implement the interface.
-
-      :return: True if interface is implemented by the class, else False.
+      Therefore, the class can be verified once, rather than verifying each instance separately.
 
    .. py:classmethod:: register_provider(cls)
 
-      Register a providing class to the interface.
+      Register a class that provides the interface.
       A providing class does not have all the attributes defined in the interface, but its instances do.
+      Each instance will be verified independently.
+
+   .. py:classmethod:: implemented_by(cls)
+
+      Check if class claims to provide the interface.
+      Both implementing and providing classes return True.
+      However, dynamic providers return False.
+
+      :return: True if interface is implemented by the class, else False.
 
    .. py:classmethod:: provided_by(obj)
 
       Check if object claims to provide the interface.
-      This will be true if the object's class implements or provides the interface.
+      This will be true if the object's class claims to provide the interface.
       It will also be true if the object's class implements or provides the ``Dynamic`` interface, and the object's ``provides_interface`` method returns ``True`` when passed this interface.
 
       :return: True if the object claims to provide the interface, or False otherwise.
