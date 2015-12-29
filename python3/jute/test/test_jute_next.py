@@ -3,16 +3,25 @@ import unittest
 from jute import Interface, Dynamic
 
 
+# Note that an Iterator is a syntactic sub-class of Iterable, but it is
+# not (necessarily) a semantic sub-class.  Although there is no absolute
+# rule, an iterator is usually a non-restartable "input iterator", while
+# an iterable is a restartable "forward iterator".  In general, neither
+# of them can be used in all code that works with the other.
+
 class Iterable(Interface):
 
     def __iter__(self):
-        """Interface for an iterable."""
+        """Get an iterator."""
 
 
-class Iterator(Iterable):
+class Iterator(Interface):
+
+    def __iter__(self):
+        """Handle for loops."""
 
     def __next__(self):
-        """Interface for an iterator."""
+        """Get the next item."""
 
 
 class IterTestMixin:
