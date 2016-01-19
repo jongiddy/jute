@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic
+from jute import Interface, Dynamic, implements
 
 
 count_to_5 = range(5)
@@ -42,7 +42,8 @@ class IterTestMixin:
         self.assertEqual(next(iterator), 0)
 
 
-class CountTo5(Iterable.Provider):
+@implements(Iterable)
+class CountTo5:
 
     def __iter__(self):
         return iter(count_to_5)
@@ -60,7 +61,8 @@ class IterInterfaceTests(IterTestMixin, unittest.TestCase):
         return Iterable(CountTo5())
 
 
-class IterableProxy(Dynamic.Provider):
+@implements(Dynamic)
+class IterableProxy:
 
     def __init__(self, wrapped_iterable):
         self.wrapped = wrapped_iterable
@@ -84,7 +86,8 @@ class IterDynamicInterfaceTests(IterTestMixin, unittest.TestCase):
         return Iterable(IterableProxy(CountTo5()))
 
 
-class GeneratedIter(Iterable.Provider):
+@implements(Iterable)
+class GeneratedIter:
 
     """A class that generates the __iter__ method dynamically."""
 

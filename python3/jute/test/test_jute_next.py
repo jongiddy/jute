@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic
+from jute import Interface, Dynamic, implements
 
 
 # Note that an Iterator is a syntactic sub-class of Iterable, but it is
@@ -42,7 +42,8 @@ class IterTestMixin:
         self.assertEqual(iterator.__next__(), 0)
 
 
-class LotsOfZeros(Iterator.Provider):
+@implements(Iterator)
+class LotsOfZeros:
 
     def __iter__(self):
         return self
@@ -63,7 +64,8 @@ class NextInterfaceTests(IterTestMixin, unittest.TestCase):
         return Iterator(LotsOfZeros())
 
 
-class IteratorProxy(Dynamic.Provider):
+@implements(Dynamic)
+class IteratorProxy:
 
     def __init__(self, wrapped_iterator):
         self.wrapped = wrapped_iterator
@@ -90,7 +92,8 @@ class NextDynamicInterfaceTests(IterTestMixin, unittest.TestCase):
         return Iterator(IteratorProxy(LotsOfZeros()))
 
 
-class GeneratedNext(Iterator.Provider):
+@implements(Iterator)
+class GeneratedNext:
 
     """A class that generates the __next__ method dynamically."""
 

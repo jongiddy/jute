@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic
+from jute import Interface, Dynamic, implements
 
 
 class Callable(Interface):
@@ -27,7 +27,8 @@ class CallTestMixin:
         self.assertEqual(callable.__call__(), 0)
 
 
-class BasicCallable(Callable.Provider):
+@implements(Callable)
+class BasicCallable:
 
     def __call__(self):
         return 0
@@ -45,7 +46,8 @@ class CallableInterfaceTests(CallTestMixin, unittest.TestCase):
         return Callable(BasicCallable())
 
 
-class CallableProxy(Dynamic.Provider):
+@implements(Dynamic)
+class CallableProxy:
 
     def __init__(self, wrapped_callable):
         self.wrapped = wrapped_callable
@@ -69,7 +71,8 @@ class CallableDynamicInterfaceTests(CallTestMixin, unittest.TestCase):
         return Callable(CallableProxy(BasicCallable()))
 
 
-class GeneratedCallable(Callable.Provider):
+@implements(Callable)
+class GeneratedCallable:
 
     """A class that generates the __call__ method dynamically."""
 

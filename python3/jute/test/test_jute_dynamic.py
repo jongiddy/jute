@@ -32,7 +32,8 @@ class ProvidedByTests(unittest.TestCase):
         self.assertTrue(Dynamic.provided_by(DynamicRegisteredImplementation()))
 
     def test_provider_provided_by(self):
-        class DynamicProvider(Dynamic.Provider):
+        @implements(Dynamic)
+        class DynamicProvider:
 
             def provides_interface(self, interface):
                 return False
@@ -82,7 +83,8 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
         IFoo(instance)
 
     def test_provider_provided_by(self):
-        class FooDynamic(Dynamic.Provider):
+        @implements(Dynamic)
+        class FooDynamic:
 
             def provides_interface(self, interface):
                 return interface.implemented_by(IFoo)

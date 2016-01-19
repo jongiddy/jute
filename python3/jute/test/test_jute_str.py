@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic
+from jute import Interface, Dynamic, implements
 
 
 class StringLike(Interface):
@@ -27,7 +27,8 @@ class StringTestMixin:
         self.assertEqual(string_like.__str__(), 'foo')
 
 
-class FooString(StringLike.Provider):
+@implements(StringLike)
+class FooString:
 
     def __str__(self):
         return 'foo'
@@ -45,7 +46,8 @@ class StrInterfaceTests(StringTestMixin, unittest.TestCase):
         return StringLike(FooString())
 
 
-class FooStringProxy(Dynamic.Provider):
+@implements(Dynamic)
+class FooStringProxy:
 
     def provides_interface(self, interface):
         return interface.implemented_by(StringLike)
@@ -66,7 +68,8 @@ class StrDynamicInterfaceTests(StringTestMixin, unittest.TestCase):
         return StringLike(FooStringProxy())
 
 
-class GeneratedStr(StringLike.Provider):
+@implements(StringLike)
+class GeneratedStr:
 
     """A class that generates the __str__ method dynamically."""
 

@@ -187,7 +187,8 @@ class InterfaceProviderTests(
     FooBarHasBarOnly = FooBarImplementerNoFoo
 
 
-class FooBarDynamicHasBaz(Dynamic.Provider):
+@implements(Dynamic)
+class FooBarDynamicHasBaz:
 
     def provides_interface(self, interface):
         return interface.implemented_by(IFooBar)
@@ -206,7 +207,8 @@ class FooBarDynamicHasBaz(Dynamic.Provider):
         return super().__getattr__(name)
 
 
-class FooBarDynamicNoFoo(Dynamic.Provider):
+@implements(Dynamic)
+class FooBarDynamicNoFoo:
     # doesn't implement foo
 
     def provides_interface(self, interface):
@@ -397,7 +399,8 @@ class ImplementedByTests(unittest.TestCase):
 class CastTest(unittest.TestCase):
 
     def test_provider_valid_cast(self):
-        class FooBarBaz(FooBarImplementerHasBaz, IFooBaz.Provider):
+        @implements(IFooBaz)
+        class FooBarBaz(FooBarImplementerHasBaz):
 
             """Class that implements IFooBar and IFooBaz."""
 

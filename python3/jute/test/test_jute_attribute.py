@@ -72,7 +72,8 @@ class FooProviderRegistered:
 IFoo.register_implementation(FooProviderRegistered)
 
 
-class FooDynamic(Dynamic.Provider):
+@implements(Dynamic)
+class FooDynamic:
 
     def __getattr__(self, name):
         if name == 'foo':

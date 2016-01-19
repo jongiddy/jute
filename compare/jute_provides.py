@@ -28,7 +28,8 @@ class IncrementsBar(Increments):
     bar = 1
 
 
-class IncrementingInteger(IncrementsBar.Provider):
+@jute.implements(IncrementsBar)
+class IncrementingInteger:
 
     """Increment an integer when increment is called."""
 

@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic
+from jute import Interface, Dynamic, implements
 
 
 class BytesLike(Interface):
@@ -30,7 +30,8 @@ class BytesTestMixin:
         self.assertEqual(bytes_like.__bytes__(), b'foo')
 
 
-class FooBytes(BytesLike.Provider):
+@implements(BytesLike)
+class FooBytes:
 
     def __iter__(self):
         return iter(b'foo')
@@ -51,7 +52,8 @@ class BytesInterfaceTests(BytesTestMixin, unittest.TestCase):
         return BytesLike(FooBytes())
 
 
-class FooBytesProxy(Dynamic.Provider):
+@implements(Dynamic)
+class FooBytesProxy:
 
     def provides_interface(self, interface):
         return interface.implemented_by(BytesLike)
@@ -77,7 +79,8 @@ class BytesDynamicInterfaceTests(BytesTestMixin, unittest.TestCase):
 
 # __bytes__ is never optimised away, so generated version works as is
 
-class GeneratedBytes(BytesLike.Provider):
+@implements(BytesLike)
+class GeneratedBytes:
 
     """A class that generates the __bytes__ method dynamically."""
 
