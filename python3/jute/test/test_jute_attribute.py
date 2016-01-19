@@ -55,7 +55,8 @@ class FooImplementsRegistered:
 IFoo.register_implementation(FooImplementsRegistered)
 
 
-class FooProvider(IFoo.Provider):
+@implements(IFoo)
+class FooProvider:
 
     def __init__(self):
         self.foo = 5
@@ -68,7 +69,7 @@ class FooProviderRegistered:
         self.foo = 5
         self.bar = 6
 
-IFoo.register_provider(FooProviderRegistered)
+IFoo.register_implementation(FooProviderRegistered)
 
 
 class FooDynamic(Dynamic.Provider):

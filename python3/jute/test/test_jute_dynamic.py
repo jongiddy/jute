@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Dynamic, Interface, implements, provides
+from jute import Dynamic, Interface, implements
 
 
 class ProvidedByTests(unittest.TestCase):
@@ -21,15 +21,6 @@ class ProvidedByTests(unittest.TestCase):
 
         self.assertTrue(Dynamic.provided_by(DynamicImplemented()))
 
-    def test_provided_provided_by(self):
-        @provides(Dynamic)
-        class DynamicProvided:
-
-            def provides_interface(self, interface):
-                return False
-
-        self.assertTrue(Dynamic.provided_by(DynamicProvided()))
-
     def test_registered_implementation_provided_by(self):
         class DynamicRegisteredImplementation:
 
@@ -48,16 +39,6 @@ class ProvidedByTests(unittest.TestCase):
 
         self.assertTrue(Dynamic.provided_by(DynamicProvider()))
 
-    def test_registered_provider_provided_by(self):
-        class DynamicRegisteredProvider:
-
-            def provides_interface(self, interface):
-                return False
-
-        Dynamic.register_provider(DynamicRegisteredProvider)
-
-        self.assertTrue(Dynamic.provided_by(DynamicRegisteredProvider()))
-
 
 class IFoo(Interface):
 
@@ -73,20 +54,6 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
 
     def test_implemented_provided_by(self):
         @implements(Dynamic)
-        class FooDynamic:
-
-            def provides_interface(self, interface):
-                return interface.implemented_by(IFoo)
-
-            def foo(self):
-                return 1
-
-        instance = FooDynamic()
-        self.assertTrue(IFoo.provided_by(instance))
-        IFoo(instance)
-
-    def test_provided_provided_by(self):
-        @provides(Dynamic)
         class FooDynamic:
 
             def provides_interface(self, interface):
@@ -122,21 +89,6 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
 
             def foo(self):
                 return 1
-
-        instance = FooDynamic()
-        self.assertTrue(IFoo.provided_by(instance))
-        IFoo(instance)
-
-    def test_registered_provider_provided_by(self):
-        class FooDynamic:
-
-            def provides_interface(self, interface):
-                return interface.implemented_by(IFoo)
-
-            def foo(self):
-                return 1
-
-        Dynamic.register_provider(FooDynamic)
 
         instance = FooDynamic()
         self.assertTrue(IFoo.provided_by(instance))

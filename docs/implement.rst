@@ -8,7 +8,7 @@ be considered in the order that they appear.
 Register a class that implements the interface
 ----------------------------------------------
 
-For classes that define all attributes of an interface, decorate the class with
+To indicate that a class implements an interface, decorate the class with
 ``jute.implements``.
 
 .. code-block:: python
@@ -27,43 +27,6 @@ interface.
 .. code-block:: python
 
    BufferedWritable.register_implementation(file)
-
-In either of the above cases, the interface is verified once,
-during class definition or registration.
-
-Register a class whose instances provide the interface
-------------------------------------------------------
-
-Sometimes a class does not define all interface attributes, but instances of
-the class will, typically through the ``__init__`` or ``__getattr__`` methods.  In
-this case, decorate the class with ``jute.provides``.
-
-.. code-block:: python
-
-   @jute.provides(BufferedWritable)
-   class ErrorWriter:
-       def __init__(self):
-           self.write = sys.stderr.write
-       def __getattr__(self, name):
-           if name == 'flush':
-               def flush(buf):
-                   sys.stderr.flush(buf)
-               return flush
-           raise AttributeError(name)
-
-If it is not possible to decorate the class, use the interface's
-``register_provider`` method to specify that class instances will provide the
-interface. Note that ``register_provider`` takes the class whose instances will
-provide the interface, not a class instance.
-
-.. code-block:: python
-
-   Writable.register_provider(ssl.SSLSocket)
-
-This particular class could also have been registered using ``register_implementation``.
-
-The claim to provide an interface is verified during each conversion to the interface,
-and hence is slower than registering an implementation.
 
 
 Dynamically indicate that an instance provides the interface

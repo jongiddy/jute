@@ -1,35 +1,37 @@
 import unittest
 
 from jute import (
-    Interface, Dynamic, implements, provides, InterfaceConformanceError
+    Interface, Dynamic, implements, InterfaceConformanceError
 )
 
 
 # Simple interface hierarchy for testing
 
 class IFoo(Interface):
-    foo = 99
+    foo = 99  # Initially set to 1 in implementations
 
 
 class IFooBar(IFoo):
 
     def bar(self):
-        """The bar method."""
+        """The bar method. Sets foo to 2."""
 
 
 class IFooBaz(IFoo):
 
     def baz(self):
-        """The baz method."""
+        """The baz method. Sets foo to 3."""
 
 
 class IncompleteProviderTestsMixin:
 
-    # Change this to the class to be tested
-    HasBarOnly = object
+    # Change this to the class to be tested - a class that claims to
+    # implement the interface `IFooBar`, but only provides `bar`.
+    FooBarHasBarOnly = object
 
     def test_incomplete_provider_validate_none(self):
-        """Incomplete implementations are caught (during debugging).
+        """
+        Incomplete implementations are caught (during debugging).
 
         If an object claims to provide an interface, but doesn't,
         conversion to the interface will raise an
@@ -41,7 +43,7 @@ class IncompleteProviderTestsMixin:
         an AttributeError, but this may occur later, when it is more
         difficult to diagnose where the invalid object came from.
         """
-        obj = self.HasBarOnly()
+        obj = self.FooBarHasBarOnly()
         if __debug__:
             with self.assertRaises(InterfaceConformanceError):
                 IFooBar(obj)
@@ -52,13 +54,13 @@ class IncompleteProviderTestsMixin:
 
     def test_incomplete_provider_validate_true(self):
         """validate is True -> always raise InterfaceConformanceError."""
-        obj = self.HasBarOnly()
+        obj = self.FooBarHasBarOnly()
         with self.assertRaises(InterfaceConformanceError):
             IFooBar(obj, validate=True)
 
     def test_incomplete_provider_validate_false(self):
         """validate is False -> always raise late AttributeError."""
-        obj = self.HasBarOnly()
+        obj = self.FooBarHasBarOnly()
         foobar = IFooBar(obj, validate=False)
         with self.assertRaises(AttributeError):
             foobar.foo
@@ -66,13 +68,17 @@ class IncompleteProviderTestsMixin:
 
 class CompleteProviderTestsMixin:
 
-    # Change this to the class to be tested
-    HasFooBarBaz = object
+    # Change this to the class to be tested - a class that has
+    # attributes `foo`, `bar`, `baz`, but which only claims to
+    # implement `IFooBar`.
+    FooBarHasFooBarBaz = object
 
     def test_provide(self):
-        """An interface only has attributes defined in the interface (or
-        in super-interfaces)."""
-        obj = self.HasFooBarBaz()
+        """
+        An interface only has attributes defined in the interface (or
+        in super-interfaces).
+        """
+        obj = self.FooBarHasFooBarBaz()
         foobar = IFooBar(obj)
         self.assertEqual(foobar.foo, 1)
         foobar.bar()
@@ -83,7 +89,7 @@ class CompleteProviderTestsMixin:
 
     def test_inherit(self):
         """An interface can be mapped to a super-interface."""
-        obj = self.HasFooBarBaz()
+        obj = self.FooBarHasFooBarBaz()
         foobar = IFooBar(obj)
         foo = IFoo(foobar)
         self.assertEqual(foo.foo, 1)
@@ -92,50 +98,44 @@ class CompleteProviderTestsMixin:
         self.assertEqual(obj.foo, 1)
 
     def test_upcast_fails(self):
-        """An interface cannot be mapped to a sub-interface, even if the
-        wrapped instance could be."""
-        obj = self.HasFooBarBaz()
+        """
+        An interface cannot be mapped to a sub-interface, even if the
+        wrapped instance could be.
+        """
+        obj = self.FooBarHasFooBarBaz()
         foo = IFoo(obj)
         with self.assertRaises(TypeError):
             IFooBar(foo)
 
     def test_duck_fails(self):
-        """Duck-typed object does not match unclaimed interface.
+        """
+        Duck-typed object does not match unclaimed interface.
 
         Although object matches the interface by duck-typing, it does
         not claim to provide the interface, so it fails with a
-        TypeError."""
-        obj = self.HasFooBarBaz()
+        TypeError.
+        """
+        obj = self.FooBarHasFooBarBaz()
         with self.assertRaises(TypeError):
             IFooBaz(obj)
 
     def test_wrapped_duck_fails(self):
-        """Duck-typed wrapped object does not match unclaimed interface.
+        """
+        Duck-typed wrapped object does not match unclaimed interface.
 
         Although object matches the interface by duck-typing, it does
         not claim to provide the interface, so it fails with a
-        TypeError."""
-        obj = self.HasFooBarBaz()
+        TypeError.
+        """
+        obj = self.FooBarHasFooBarBaz()
         foobar = IFooBar(obj)
         with self.assertRaises(TypeError):
             IFooBaz(foobar)
 
-    def test_subclass_provider_provides_interface(self):
-        """Subclassing an implementation and a provider works."""
-        class IFooBarSubclass(self.HasFooBarBaz, IFooBaz.Provider):
-            pass
-        obj = IFooBarSubclass()
-        foobar = IFooBar(obj)
-        foobaz = IFooBaz(obj)
-        self.assertEqual(foobar.foo, 1)
-        foobar.bar()
-        self.assertEqual(obj.foo, 2)
-        foobaz.baz()
-        self.assertEqual(obj.foo, 3)
-
-    def test_provider_subclass_provides_interface(self):
-        """Subclassing a provider and an implementation works."""
-        class IFooBarSubclass(IFooBaz.Provider, self.HasFooBarBaz):
+    def test_subclass_implements_provides_all_interfaces(self):
+        """Implements and subclasses together work."""
+        @implements(IFooBaz)
+        class IFooBarSubclass(self.FooBarHasFooBarBaz):
             pass
         obj = IFooBarSubclass()
         foobar = IFooBar(obj)
@@ -147,9 +147,11 @@ class CompleteProviderTestsMixin:
         self.assertEqual(obj.foo, 3)
 
 
-class FooBarSubclassProviderBaz(IFooBar.Provider):
+@implements(IFooBar)
+class FooBarImplementerHasBaz:
 
-    """IFooBar provider class.
+    """
+    Complete IFooBar implementation.
 
     A class which implements IFooBar, and looks like IFooBaz, but does
     not implement IFooBaz.
@@ -164,8 +166,14 @@ class FooBarSubclassProviderBaz(IFooBar.Provider):
         self.foo = 3
 
 
-class FooBarSubclassProviderNoFoo(IFooBar.Provider):
-    # doesn't implement foo
+@implements(IFooBar)
+class FooBarImplementerNoFoo:
+
+    """
+    Incomplete IFooBar implementation.
+
+    A class which claims to implement IFooBar, but doesn't.
+    """
 
     def bar():
         pass
@@ -175,11 +183,11 @@ class InterfaceProviderTests(
         CompleteProviderTestsMixin, IncompleteProviderTestsMixin,
         unittest.TestCase):
 
-    HasFooBarBaz = FooBarSubclassProviderBaz
-    HasBarOnly = FooBarSubclassProviderNoFoo
+    FooBarHasFooBarBaz = FooBarImplementerHasBaz
+    FooBarHasBarOnly = FooBarImplementerNoFoo
 
 
-class FooBarDynamicProviderBaz(Dynamic.Provider):
+class FooBarDynamicHasBaz(Dynamic.Provider):
 
     def provides_interface(self, interface):
         return interface.implemented_by(IFooBar)
@@ -198,7 +206,7 @@ class FooBarDynamicProviderBaz(Dynamic.Provider):
         return super().__getattr__(name)
 
 
-class FooBarDynamicProviderNoFoo(Dynamic.Provider):
+class FooBarDynamicNoFoo(Dynamic.Provider):
     # doesn't implement foo
 
     def provides_interface(self, interface):
@@ -212,110 +220,25 @@ class DynamicProviderTests(
         CompleteProviderTestsMixin, IncompleteProviderTestsMixin,
         unittest.TestCase):
 
-    HasFooBarBaz = FooBarDynamicProviderBaz
-    HasBarOnly = FooBarDynamicProviderNoFoo
+    FooBarHasFooBarBaz = FooBarDynamicHasBaz
+    FooBarHasBarOnly = FooBarDynamicNoFoo
 
     def test_subclass_provides_interface(self):
-        class IFooBarSubclass(self.HasFooBarBaz):
+        """
+        A subclass of Dynamic can override the provided interfaces, even if
+        that means breaking the expected subclass relationship.
+        """
+        class IFooBarSubclass(self.FooBarHasFooBarBaz):
 
             def provides_interface(self, interface):
-                return (
-                    interface.implemented_by(IFooBar) or
-                    interface.implemented_by(IFooBaz)
-                )
+                return interface.implemented_by(IFooBaz)
 
         obj = IFooBarSubclass()
-        foobar = IFooBar(obj)
+        with self.assertRaises(TypeError):
+            IFooBar(obj)
         foobaz = IFooBaz(obj)
-        self.assertEqual(foobar.foo, 1)
-        foobar.bar()
-        self.assertEqual(obj.foo, 2)
         foobaz.baz()
         self.assertEqual(obj.foo, 3)
-
-
-class FooBarRegisteredProviderBaz:
-
-    """IFooBar provider class.
-
-    A class which implements IFooBar, and looks like IFooBaz, but does
-    not implement IFooBaz.
-    """
-
-    foo = 1
-
-    def bar(self):
-        self.foo = 2
-
-    def baz(self):
-        self.foo = 3
-
-IFooBar.register_provider(FooBarRegisteredProviderBaz)
-
-
-class FooBarRegisteredProviderNoFoo:
-    # doesn't implement foo
-
-    def bar():
-        pass
-
-IFooBar.register_provider(FooBarRegisteredProviderNoFoo)
-
-
-class Capitalizable(Interface):
-
-    """An interface provided by string type."""
-
-    def capitalize(self):
-        """Return first character capitalized and rest lowercased."""
-
-
-class RegisteredProviderTests(
-        CompleteProviderTestsMixin, unittest.TestCase):
-
-    HasFooBarBaz = FooBarRegisteredProviderBaz
-
-    def test_builtin_type(self):
-        """Built in types can be registered."""
-        Capitalizable.register_provider(str)
-        c = Capitalizable('a stRing')
-        self.assertEqual(c.capitalize(), 'A string')
-
-    def test_incomplete_implementation_cannot_be_registered(self):
-        with self.assertRaises(InterfaceConformanceError):
-            IFooBar.register_implementation(FooBarSubclassProviderNoFoo)
-
-    def test_incomplete_provider_validate_none(self):
-        """Incomplete providers are caught (during debugging)."""
-        obj = FooBarRegisteredProviderNoFoo()
-        if __debug__:
-            with self.assertRaises(InterfaceConformanceError):
-                foobar = IFooBar(obj)
-        else:
-            foobar = IFooBar(obj)
-            with self.assertRaises(AttributeError):
-                foobar.foo
-
-    def test_incomplete_provider_validate_true(self):
-        """validate is True -> always raise InterfaceConformanceError."""
-        obj = FooBarRegisteredProviderNoFoo()
-        with self.assertRaises(InterfaceConformanceError):
-            IFooBar(obj, validate=True)
-
-    def test_incomplete_provider_validate_false(self):
-        """validate is False -> always raise late AttributeError."""
-        obj = FooBarRegisteredProviderNoFoo()
-        foobar = IFooBar(obj, validate=False)
-        with self.assertRaises(AttributeError):
-            foobar.foo
-
-    def test_non_class_fails(self):
-        """A non-class interface provider cannot be registered.
-
-        This is required to ensure that registered implementations can
-        be tested quickly using `issubclass`"""
-        with self.assertRaises(TypeError):
-            Capitalizable.register_provider('')
 
 
 class FooBarRegisteredImplementationBaz:
@@ -340,22 +263,24 @@ IFooBar.register_implementation(FooBarRegisteredImplementationBaz)
 class FooBarRegisteredImplementationNoFoo:
     # doesn't implement foo
 
-    foo = 1
-
     def bar():
         pass
 
-# Needs to be complete for registration, but then remove part of class.
-# Document non-deletion of interface attributes as a requirement for
-# registration.
 IFooBar.register_implementation(FooBarRegisteredImplementationNoFoo)
-del FooBarRegisteredImplementationNoFoo.foo
+
+
+class Capitalizable(Interface):
+
+    """An interface provided by string type."""
+
+    def capitalize(self):
+        """Return first character capitalized and rest lowercased."""
 
 
 class RegisteredImplementationTests(
         CompleteProviderTestsMixin, unittest.TestCase):
 
-    HasFooBarBaz = FooBarRegisteredImplementationBaz
+    FooBarHasFooBarBaz = FooBarRegisteredImplementationBaz
 
     def test_builtin_type(self):
         """Built in types can be registered."""
@@ -363,26 +288,19 @@ class RegisteredImplementationTests(
         c = Capitalizable('a stRing')
         self.assertEqual(c.capitalize(), 'A string')
 
-    def test_incomplete_implementation_cannot_be_registered(self):
-        with self.assertRaises(InterfaceConformanceError):
-            IFooBar.register_implementation(FooBarSubclassProviderNoFoo)
+    def test_incomplete_implementation_can_be_registered(self):
+        IFooBar.register_implementation(FooBarImplementerNoFoo)
 
     def test_incomplete_provider_validate_none(self):
-        """Incomplete implementations are caught (during debugging).
-
-        If a class successfully registers an interface, but doesn't
-        provide the interface (e.g. deletes an attribute), the problem
-        is not detected during creation.  A normal attribute error will
-        be raised when the attributes is accessed.
-
-        Note, this is the same as `validate=False` for non-registered
-        providers, indicating that classes verified before instantiation
-        are not verified when being instantiated.
-        """
+        """Incomplete providers are caught (during debugging)."""
         obj = FooBarRegisteredImplementationNoFoo()
-        foobar = IFooBar(obj)
-        with self.assertRaises(AttributeError):
-            foobar.foo
+        if __debug__:
+            with self.assertRaises(InterfaceConformanceError):
+                foobar = IFooBar(obj)
+        else:
+            foobar = IFooBar(obj)
+            with self.assertRaises(AttributeError):
+                foobar.foo
 
     def test_incomplete_provider_validate_true(self):
         """validate is True -> always raise InterfaceConformanceError."""
@@ -406,58 +324,6 @@ class RegisteredImplementationTests(
             Capitalizable.register_implementation('')
 
 
-@provides(IFooBar)
-class FooBarDecoratedProviderBaz:
-
-    """IFooBar provider class.
-
-    A class which implements IFooBar, and looks like IFooBaz, but does
-    not implement IFooBaz.
-    """
-
-    foo = 1
-
-    def bar(self):
-        self.foo = 2
-
-    def baz(self):
-        self.foo = 3
-
-IFooBar.register_provider(FooBarRegisteredProviderBaz)
-
-
-class DecoratedProviderTests(
-        CompleteProviderTestsMixin, unittest.TestCase):
-
-    HasFooBarBaz = FooBarRegisteredProviderBaz
-
-
-@implements(IFooBar)
-class FooBarDecoratedImplementationBaz:
-
-    """IFooBar provider class.
-
-    A class which implements IFooBar, and looks like IFooBaz, but does
-    not implement IFooBaz.
-    """
-
-    foo = 1
-
-    def bar(self):
-        self.foo = 2
-
-    def baz(self):
-        self.foo = 3
-
-IFooBar.register_implementation(FooBarRegisteredImplementationBaz)
-
-
-class DecoratedImplementationTests(
-        CompleteProviderTestsMixin, unittest.TestCase):
-
-    HasFooBarBaz = FooBarRegisteredImplementationBaz
-
-
 class IFooBarSubclass(IFooBar):
     pass
 
@@ -470,8 +336,9 @@ class DoubleInheritedInterfaceTests(unittest.TestCase):
     should fail.
     """
 
-    def test_provider(self):
-        class FooBar(IFooBarSubclass.Provider):
+    def test_implements(self):
+        @implements(IFooBarSubclass)
+        class FooBar:
             foo = 1
             bar = 2
 
@@ -492,7 +359,10 @@ class DoubleInheritedInterfaceTests(unittest.TestCase):
 class ImplementedByTests(unittest.TestCase):
 
     def test_implemented_by_self(self):
-        """An interface is implemented by itself."""
+        """
+        An interface is implemented by itself.  (An instance of the class
+        IFoo (which wraps an object) implements the interface.)
+        """
         self.assertTrue(IFoo.implemented_by(IFoo))
 
     def test_implemented_by_subinterface(self):
@@ -504,24 +374,13 @@ class ImplementedByTests(unittest.TestCase):
         self.assertTrue(IFoo.implemented_by(FooBarRegisteredImplementationBaz))
 
     def test_implemented_by_verifiable_provider_class(self):
-        """An interface is implemented by a provider class if verified."""
-        class Foo(IFoo.Provider):
-            foo = 1
-        self.assertTrue(IFoo.implemented_by(Foo))
-
-    def test_implemented_by_non_verifiable_provider_class(self):
-        """An interface is implemented by non-verified provider class."""
-        class Foo(IFoo.Provider):
-            # Instance is a valid provider, but the class itself is not.
-
-            def __init__(self):
-                self.foo = 1
-        self.assertTrue(IFoo.implemented_by(Foo))
+        """An interface is implemented by a provider class."""
+        self.assertTrue(IFoo.implemented_by(FooBarImplementerHasBaz))
 
     def test_not_implemented_by_provider_instance(self):
         """A provider instance is not valid with implemented_by."""
         with self.assertRaises(TypeError):
-            IFoo.implemented_by(FooBarSubclassProviderBaz())
+            IFoo.implemented_by(FooBarImplementerHasBaz())
 
     def test_not_implemented_by_registered_instance(self):
         """A registered instance is not valid with implemented_by."""
@@ -538,7 +397,7 @@ class ImplementedByTests(unittest.TestCase):
 class CastTest(unittest.TestCase):
 
     def test_provider_valid_cast(self):
-        class FooBarBaz(FooBarSubclassProviderBaz, IFooBaz.Provider):
+        class FooBarBaz(FooBarImplementerHasBaz, IFooBaz.Provider):
 
             """Class that implements IFooBar and IFooBaz."""
 
@@ -551,7 +410,7 @@ class CastTest(unittest.TestCase):
 
     def test_provider_invalid_cast(self):
         """Cannot cast to interface not supported by underlying object."""
-        foobarbaz = FooBarSubclassProviderBaz()
+        foobarbaz = FooBarImplementerHasBaz()
         foobar = IFooBar(foobarbaz)
         with self.assertRaises(TypeError):
             IFooBaz.cast(foobar)
@@ -560,7 +419,7 @@ class CastTest(unittest.TestCase):
 class SupportedByTest(unittest.TestCase):
 
     def test_supported_by(self):
-        foobar = FooBarSubclassProviderBaz()
+        foobar = FooBarImplementerHasBaz()
         foo = IFoo(foobar)
         self.assertFalse(IFooBar.provided_by(foo))
         self.assertTrue(IFooBar.supported_by(foo))

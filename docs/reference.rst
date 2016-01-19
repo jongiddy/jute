@@ -35,12 +35,6 @@ Module Reference
       An implementing class has all the attributes defined in the interface.
       Therefore, the class can be verified once, rather than verifying each instance separately.
 
-   .. py:classmethod:: register_provider(cls)
-
-      Register a class that provides the interface.
-      A providing class does not have all the attributes defined in the interface, but its instances do.
-      Each instance will be verified independently.
-
    .. py:classmethod:: implemented_by(cls)
 
       Check if class claims to provide the interface.
@@ -87,14 +81,7 @@ Module Reference
 
    Decorator to mark a class as implementing the supplied interfaces.
 
-   To implement an interface, the class must define all attributes in the interface.
-
-
-.. py:decorator:: provides(*interfaces)
-
-   Decorator to mark a class as providing the supplied interfaces.
-
-   To provide an interface, the class instances must define all attributes in the interface.
+   To implement an interface, the class instances must define all attributes in the interface.
 
 
 .. py:class:: Dynamic(provider)

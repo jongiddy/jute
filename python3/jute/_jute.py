@@ -299,7 +299,7 @@ class InterfaceMetaclass(type):
                 'Object {} does not provide interface {}'. format(
                     obj, interface.__name__))
 
-    def register_provider(interface, cls):
+    def register_implementation(interface, cls):
         """Register a provider class to the interface."""
         issubclass(cls, cls)      # ensure cls can appear on both sides
         for base in interface.__mro__:
@@ -309,6 +309,18 @@ class InterfaceMetaclass(type):
                 cls not in base._unverified
             ):
                 base._unverified += (cls,)
+
+    def implemented_by(interface, cls):
+        """Check if class claims to provide the interface.
+
+        :return: True if interface is implemented by the class, else False.
+        """
+        # Contrast this function with `provided_by`. Note that Dynamic Provider
+        # classes cannot dynamically claim to implement an interface.
+        return (
+            issubclass(cls, interface._verified) or
+            issubclass(cls, interface._unverified)
+        )
 
     def provided_by(interface, obj):
         """Check if object claims to provide the interface.
@@ -329,28 +341,6 @@ class InterfaceMetaclass(type):
         This is useful for feature checks with marker interfaces.
         """
         return interface.provided_by(underlying_object(obj))
-
-    def register_implementation(interface, cls):
-        """Check if a provider implements the interface, and register it."""
-        issubclass(cls, cls)      # ensure cls can appear on both sides
-        missing = missing_attributes(cls, interface._provider_attributes)
-        if missing:
-            raise InterfaceConformanceError(mkmessage(cls, missing))
-        for base in interface.__mro__:
-            if issubclass(base, Interface) and cls not in base._verified:
-                base._verified += (cls,)
-
-    def implemented_by(interface, cls):
-        """Check if class claims to provide the interface.
-
-        :return: True if interface is implemented by the class, else False.
-        """
-        # Contrast this function with `provided_by`. Note that Dynamic Provider
-        # classes cannot dynamically claim to implement an interface.
-        return (
-            issubclass(cls, interface._verified) or
-            issubclass(cls, interface._unverified)
-        )
 
 
 class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
@@ -407,25 +397,16 @@ class Dynamic(Interface):
         or False when the interface is not provided.
         """
 
-# These decorators do not wrap the class. They simply run the appropriate
-# `register` method for each interface, and return the original class.  This
-# handily avoids many of the problems typical of wrapping decorators. See
-# http://blog.dscpl.com.au/2014/01/how-you-implemented-your-python.html
-
 
 def implements(*interfaces):
     """Decorator to mark a class as implementing an interface."""
+    # The decorator does not wrap the class. It simply runs the
+    # `register_implementation` method for each interface, and returns
+    # the original class.  This handily avoids many of the problems
+    # typical of wrapping decorators. See
+    # http://blog.dscpl.com.au/2014/01/how-you-implemented-your-python.html
     def decorator(cls):
         for interface in interfaces:
             interface.register_implementation(cls)
-        return cls
-    return decorator
-
-
-def provides(*interfaces):
-    """Decorator to mark a class as providing an interface."""
-    def decorator(cls):
-        for interface in interfaces:
-            interface.register_provider(cls)
         return cls
     return decorator
