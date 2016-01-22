@@ -1,7 +1,7 @@
 import unittest
 
 from jute import (
-    Interface, Dynamic, implements, InterfaceConformanceError
+    Interface, DynamicInterface, implements, InterfaceConformanceError
 )
 
 
@@ -187,7 +187,7 @@ class InterfaceProviderTests(
     FooBarHasBarOnly = FooBarImplementerNoFoo
 
 
-@implements(Dynamic)
+@implements(DynamicInterface)
 class FooBarDynamicHasBaz:
 
     def provides_interface(self, interface):
@@ -207,7 +207,7 @@ class FooBarDynamicHasBaz:
         return super().__getattr__(name)
 
 
-@implements(Dynamic)
+@implements(DynamicInterface)
 class FooBarDynamicNoFoo:
     # doesn't implement foo
 
@@ -227,8 +227,8 @@ class DynamicProviderTests(
 
     def test_subclass_provides_interface(self):
         """
-        A subclass of Dynamic can override the provided interfaces, even if
-        that means breaking the expected subclass relationship.
+        A subclass of `DynamicInterface` can override the provided interfaces,
+        even if that means breaking the expected subclass relationship.
         """
         class IFooBarSubclass(self.FooBarHasFooBarBaz):
 

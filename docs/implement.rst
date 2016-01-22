@@ -34,11 +34,11 @@ Dynamically indicate that an instance provides the interface
 
 Sometimes, especially for wrapper classes, it is useful to declare support for
 an interface dynamically.  Dynamic implementations are declared using the
-``jute.Dynamic`` interface, which provides a single method ``provides_interface``:
+``jute.DynamicInterface`` interface, which provides a single method ``provides_interface``:
 
 .. code-block:: python
 
-   @implements(jute.Dynamic)
+   @jute.implements(jute.DynamicInterface)
    class PrintAttributeAccessWrapper:
        def __init__(self, wrapped):
            self.wrapped = wrapped

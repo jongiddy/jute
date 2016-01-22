@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic, implements
+from jute import Interface, DynamicInterface, implements
 
 
 class BytesLike(Interface):
@@ -52,7 +52,7 @@ class BytesInterfaceTests(BytesTestMixin, unittest.TestCase):
         return BytesLike(FooBytes())
 
 
-@implements(Dynamic)
+@implements(DynamicInterface)
 class FooBytesProxy:
 
     def provides_interface(self, interface):

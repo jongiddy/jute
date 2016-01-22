@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic, implements
+from jute import Interface, DynamicInterface, implements
 
 
 # Note that an Iterator is a syntactic sub-class of Iterable, but it is
@@ -64,7 +64,7 @@ class NextInterfaceTests(IterTestMixin, unittest.TestCase):
         return Iterator(LotsOfZeros())
 
 
-@implements(Dynamic)
+@implements(DynamicInterface)
 class IteratorProxy:
 
     def __init__(self, wrapped_iterator):

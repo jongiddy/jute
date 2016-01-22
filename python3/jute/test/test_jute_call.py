@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic, implements
+from jute import Interface, DynamicInterface, implements
 
 
 class Callable(Interface):
@@ -46,7 +46,7 @@ class CallableInterfaceTests(CallTestMixin, unittest.TestCase):
         return Callable(BasicCallable())
 
 
-@implements(Dynamic)
+@implements(DynamicInterface)
 class CallableProxy:
 
     def __init__(self, wrapped_callable):

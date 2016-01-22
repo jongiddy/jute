@@ -278,17 +278,16 @@ class InterfaceMetaclass(type):
                     raise InterfaceConformanceError(mkmessage(obj, missing))
         elif (
             isinstance(obj, interface._unverified) or (
-                isinstance(obj, Dynamic._verified) or
-                isinstance(obj, Dynamic._unverified)
+                isinstance(obj, DynamicInterface._verified) or
+                isinstance(obj, DynamicInterface._unverified)
                 ) and obj.provides_interface(interface)
         ):
             # The object claims to provide the interface, either by
-            # subclassing the interface's provider class, or by
-            # implementing Dynamic and returning True from the provides
-            # method.  Since it is just a claim, verify that the
-            # attributes are supported.  If `validate` is False or is
-            # not set and code is optimised, accept claims without
-            # validating.
+            # implementing the interface, or by implementing the
+            # `DynamicInterface` interface and returning True from the
+            # `provides_interface` method.  Since it is just a claim, verify
+            # that the attributes are supported.  If `validate` is False or is
+            # not set and code is optimised, accept claims without validating.
             if validate is None and __debug__ or validate:
                 missing = missing_attributes(
                     obj, interface._provider_attributes)
@@ -315,7 +314,7 @@ class InterfaceMetaclass(type):
 
         :return: True if interface is implemented by the class, else False.
         """
-        # Contrast this function with `provided_by`. Note that Dynamic Provider
+        # Contrast this function with `provided_by`. Note that DynamicInterface
         # classes cannot dynamically claim to implement an interface.
         return (
             issubclass(cls, interface._verified) or
@@ -330,8 +329,8 @@ class InterfaceMetaclass(type):
         return (
             isinstance(obj, interface._verified) or
             isinstance(obj, interface._unverified) or (
-                isinstance(obj, Dynamic._verified) or
-                isinstance(obj, Dynamic._unverified)) and
+                isinstance(obj, DynamicInterface._verified) or
+                isinstance(obj, DynamicInterface._unverified)) and
                 obj.provides_interface(interface)
             )
 
@@ -386,7 +385,7 @@ def underlying_object(interface):
     return obj
 
 
-class Dynamic(Interface):
+class DynamicInterface(Interface):
 
     """Interface to dynamically provide other interfaces."""
 

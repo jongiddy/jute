@@ -1,25 +1,25 @@
 import unittest
 
-from jute import Dynamic, Interface, implements
+from jute import DynamicInterface, Interface, implements
 
 
 class ProvidedByTests(unittest.TestCase):
 
     """
-    Since Dynamic is used in the implementation of `provided_by`, it may
-    cause problems when Dynamic is passed as the implementation to check
-    (e.g. infinite loops).  Verify each of the ways to make something
-    dynamic.
+    Since DynamicInterface is used in the implementation of `provided_by`,
+    it may cause problems when DynamicInterface is passed as the
+    implementation to check (e.g. infinite loops).  Verify each of the
+    ways to make something dynamic.
     """
 
     def test_implemented_provided_by(self):
-        @implements(Dynamic)
+        @implements(DynamicInterface)
         class DynamicImplemented:
 
             def provides_interface(self, interface):
                 return False
 
-        self.assertTrue(Dynamic.provided_by(DynamicImplemented()))
+        self.assertTrue(DynamicInterface.provided_by(DynamicImplemented()))
 
     def test_registered_implementation_provided_by(self):
         class DynamicRegisteredImplementation:
@@ -27,18 +27,13 @@ class ProvidedByTests(unittest.TestCase):
             def provides_interface(self, interface):
                 return False
 
-        Dynamic.register_implementation(DynamicRegisteredImplementation)
+        DynamicInterface.register_implementation(
+            DynamicRegisteredImplementation
+        )
 
-        self.assertTrue(Dynamic.provided_by(DynamicRegisteredImplementation()))
-
-    def test_provider_provided_by(self):
-        @implements(Dynamic)
-        class DynamicProvider:
-
-            def provides_interface(self, interface):
-                return False
-
-        self.assertTrue(Dynamic.provided_by(DynamicProvider()))
+        self.assertTrue(
+            DynamicInterface.provided_by(DynamicRegisteredImplementation())
+        )
 
 
 class IFoo(Interface):
@@ -50,11 +45,11 @@ class IFoo(Interface):
 class DynamicInterfaceProvidedByTests(unittest.TestCase):
 
     """
-    Check the different ways of creating a Dynamic inplementation
+    Check the different ways of creating a DynamicInterface implementation
     """
 
     def test_implemented_provided_by(self):
-        @implements(Dynamic)
+        @implements(DynamicInterface)
         class FooDynamic:
 
             def provides_interface(self, interface):
@@ -76,21 +71,7 @@ class DynamicInterfaceProvidedByTests(unittest.TestCase):
             def foo(self):
                 return 1
 
-        Dynamic.register_implementation(FooDynamic)
-
-        instance = FooDynamic()
-        self.assertTrue(IFoo.provided_by(instance))
-        IFoo(instance)
-
-    def test_provider_provided_by(self):
-        @implements(Dynamic)
-        class FooDynamic:
-
-            def provides_interface(self, interface):
-                return interface.implemented_by(IFoo)
-
-            def foo(self):
-                return 1
+        DynamicInterface.register_implementation(FooDynamic)
 
         instance = FooDynamic()
         self.assertTrue(IFoo.provided_by(instance))

@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic, implements
+from jute import Interface, DynamicInterface, implements
 
 
 count_to_5 = range(5)
@@ -61,7 +61,7 @@ class IterInterfaceTests(IterTestMixin, unittest.TestCase):
         return Iterable(CountTo5())
 
 
-@implements(Dynamic)
+@implements(DynamicInterface)
 class IterableProxy:
 
     def __init__(self, wrapped_iterable):

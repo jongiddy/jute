@@ -1,6 +1,8 @@
 import unittest
 
-from jute import Interface, Dynamic, implements, InterfaceConformanceError
+from jute import (
+    Interface, DynamicInterface, implements, InterfaceConformanceError
+)
 
 
 class Result:
@@ -72,7 +74,7 @@ class FooProviderRegistered:
 IFoo.register_implementation(FooProviderRegistered)
 
 
-@implements(Dynamic)
+@implements(DynamicInterface)
 class FooDynamic:
 
     def __getattr__(self, name):

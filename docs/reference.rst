@@ -47,7 +47,7 @@ Module Reference
 
       Check if object claims to provide the interface.
       This will be true if the object's class claims to provide the interface.
-      It will also be true if the object's class implements or provides the ``Dynamic`` interface, and the object's ``provides_interface`` method returns ``True`` when passed this interface.
+      It will also be true if the object's class implements or provides the ``DynamicInterface`` interface, and the object's ``provides_interface`` method returns ``True`` when passed this interface.
 
       :return: True if the object claims to provide the interface, or False otherwise.
 
@@ -84,7 +84,7 @@ Module Reference
    To implement an interface, the class instances must define all attributes in the interface.
 
 
-.. py:class:: Dynamic(provider)
+.. py:class:: DynamicInterface(provider)
 
    Interface to dynamically provide other interfaces.
 

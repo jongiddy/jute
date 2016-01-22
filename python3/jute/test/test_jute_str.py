@@ -1,6 +1,6 @@
 import unittest
 
-from jute import Interface, Dynamic, implements
+from jute import Interface, DynamicInterface, implements
 
 
 class StringLike(Interface):
@@ -46,7 +46,7 @@ class StrInterfaceTests(StringTestMixin, unittest.TestCase):
         return StringLike(FooString())
 
 
-@implements(Dynamic)
+@implements(DynamicInterface)
 class FooStringProxy:
 
     def provides_interface(self, interface):
