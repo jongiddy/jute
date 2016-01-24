@@ -183,7 +183,6 @@ class InterfaceMetaclass(type):
     def __new__(meta, name, bases, dct):
         # Called when a new class is defined.  Use the dictionary of
         # declared attributes to create a mapping to the wrapped object
-        BaseInterfaceProviders = []
         class_attributes = {}
         provider_attributes = set()
         for base in bases:
@@ -192,20 +191,9 @@ class InterfaceMetaclass(type):
                 issubclass(base, Interface)
             ):
                 # base class is a super-interface of this interface
-                BaseInterfaceProviders.append(base.Provider)
                 # This interface provides all attributes from the base
                 # interface
                 provider_attributes |= base._provider_attributes
-
-        class Provider(*BaseInterfaceProviders):
-
-            """Subclass this to express that instances provide interface.
-
-            Subclassing this class indicates that the class implements
-            the interface.  Since this class inherits the provider
-            classes of super-interfaces, it also indicates that the
-            class implements those interfaces as well.
-            """
 
         for key, value in dct.items():
             # Almost all attributes on the interface are mapped to
@@ -233,13 +221,12 @@ class InterfaceMetaclass(type):
                 # All other attributes are simply mapped using
                 # `__getattribute__`.
                 provider_attributes.add(key)
-        class_attributes['Provider'] = Provider
         class_attributes['_provider_attributes'] = provider_attributes
         interface = super().__new__(meta, name, bases, class_attributes)
         # An object wrapped by (a subclass of) the interface is
         # guaranteed to provide the matching attributes.
         interface._verified = (interface,)
-        interface._unverified = (interface.Provider,)
+        interface._unverified = ()
         return interface
 
     def __call__(interface, obj, validate=None):
