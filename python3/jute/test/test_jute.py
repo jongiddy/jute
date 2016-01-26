@@ -146,6 +146,36 @@ class CompleteProviderTestsMixin:
         foobaz.baz()
         self.assertEqual(obj.foo, 3)
 
+    def test_provider_isinstance(self):
+        """Implementation is an instance of interface's provider class."""
+        obj = self.FooBarHasFooBarBaz()
+        self.assertTrue(isinstance(obj, IFooBar.Provider))
+
+    def test_provider_issubclass(self):
+        """Implementation is a subclass of interface's provider class."""
+        obj = self.FooBarHasFooBarBaz()
+        self.assertTrue(issubclass(type(obj), IFooBar.Provider))
+
+    def test_provider_isinstance_of_superinterface(self):
+        """Implementation is an instance of interface's provider class."""
+        obj = self.FooBarHasFooBarBaz()
+        self.assertTrue(isinstance(obj, IFoo.Provider))
+
+    def test_provider_issubclass_of_superinterface(self):
+        """Implementation is a subclass of interface's provider class."""
+        obj = self.FooBarHasFooBarBaz()
+        self.assertTrue(issubclass(type(obj), IFoo.Provider))
+
+    def test_provider_not_isinstance_of_not_implemented(self):
+        """Implementation is an instance of interface's provider class."""
+        obj = self.FooBarHasFooBarBaz()
+        self.assertFalse(isinstance(obj, IFooBaz.Provider))
+
+    def test_provider_not_issubclass_of_not_implemented(self):
+        """Implementation is a subclass of interface's provider class."""
+        obj = self.FooBarHasFooBarBaz()
+        self.assertFalse(issubclass(type(obj), IFooBaz.Provider))
+
 
 @implements(IFooBar)
 class FooBarImplementerHasBaz:
@@ -241,6 +271,16 @@ class DynamicProviderTests(
         foobaz = IFooBaz(obj)
         foobaz.baz()
         self.assertEqual(obj.foo, 3)
+
+    def test_provider_issubclass(self):
+        """Override test: issubclass does not work for DynamicInterface."""
+        obj = self.FooBarHasFooBarBaz()
+        self.assertFalse(issubclass(type(obj), IFooBar.Provider))
+
+    def test_provider_issubclass_of_superinterface(self):
+        """Override test: issubclass does not work for DynamicInterface."""
+        obj = self.FooBarHasFooBarBaz()
+        self.assertFalse(issubclass(type(obj), IFoo.Provider))
 
 
 class FooBarRegisteredImplementationBaz:

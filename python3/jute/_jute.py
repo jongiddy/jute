@@ -174,6 +174,35 @@ SPECIAL_METHODS = {
 }
 
 
+class ProviderMetaclass(type):
+
+    """
+    Metaclass that provides allows isinstance() to be used to detect
+    implementation of an interface.  This allows interfaces to be used
+    with type hints, e.g. `Sequence[Writable.Provider]`.
+    """
+
+    def __new__(meta, name, bases, namespace, **kwds):
+        # Override to eliminate keyword argument
+        return super().__new__(meta, name, bases, namespace)
+
+    def __init__(cls, name, bases, namespace, **kwds):
+        interface = kwds.pop('interface')
+        super().__init__(name, bases, namespace, **kwds)
+        cls.repr = '{}[{}]'.format(name, interface)
+        cls.provided_by = interface.provided_by
+        cls.implemented_by = interface.implemented_by
+
+    def __repr__(cls):
+        return cls.repr
+
+    def __instancecheck__(cls, instance):
+        return cls.provided_by(instance)
+
+    def __subclasscheck__(cls, subclass):
+        return cls.implemented_by(subclass)
+
+
 class InterfaceMetaclass(type):
 
     KEPT = frozenset((
@@ -227,6 +256,10 @@ class InterfaceMetaclass(type):
         # guaranteed to provide the matching attributes.
         interface._verified = (interface,)
         interface._unverified = ()
+        interface.Provider = ProviderMetaclass(
+            name + 'Provider', (), {}, interface=interface
+        )
+
         return interface
 
     def __call__(interface, obj, validate=None):
