@@ -167,35 +167,6 @@ SPECIAL_METHODS = {
 }
 
 
-class ProviderMetaclass(type):
-
-    """
-    Metaclass that provides allows isinstance() to be used to detect
-    implementation of an interface.  This allows interfaces to be used
-    with type hints, e.g. `Sequence[Writable.Provider]`.
-    """
-
-    def __new__(meta, name, bases, namespace, **kwds):
-        # Override to eliminate keyword argument
-        return super().__new__(meta, name, bases, namespace)
-
-    def __init__(cls, name, bases, namespace, **kwds):
-        interface = kwds.pop('interface')
-        super().__init__(name, bases, namespace, **kwds)
-        cls.repr = '{}[{}]'.format(name, interface)
-        cls.provided_by = interface.provided_by
-        cls.implemented_by = interface.implemented_by
-
-    def __repr__(cls):
-        return cls.repr
-
-    def __instancecheck__(cls, instance):
-        return cls.provided_by(instance)
-
-    def __subclasscheck__(cls, subclass):
-        return cls.implemented_by(subclass)
-
-
 class InterfaceMetaclass(type):
 
     KEPT = frozenset((
@@ -246,9 +217,6 @@ class InterfaceMetaclass(type):
         # guaranteed to provide the matching attributes.
         interface._verified = (interface,)
         interface._unverified = ()
-        interface.Provider = ProviderMetaclass(
-            name + 'Provider', (), {}, interface=interface
-        )
 
         return interface
 
@@ -264,6 +232,9 @@ class InterfaceMetaclass(type):
         # create a wrapper object to enforce only this interface.
         return super().__call__(obj)
 
+    def __instancecheck__(interface, instance):
+        return interface.provided_by(instance)
+
     def cast(interface, source):
         """Attempt to cast one interface to another.
 
@@ -278,7 +249,8 @@ class InterfaceMetaclass(type):
         :raise: an informative error if not. For example, a
         non-implemented attribute is returned in the exception.
         """
-        if isinstance(obj, interface._verified):
+        obj_type = type(obj)
+        if issubclass(obj_type, interface._verified):
             # an instance of a class that has been verified to provide
             # the interface, so it must support all operations
             if validate:
@@ -287,9 +259,9 @@ class InterfaceMetaclass(type):
                 if missing:
                     raise InterfaceConformanceError(mkmessage(obj, missing))
         elif (
-            isinstance(obj, interface._unverified) or (
-                isinstance(obj, DynamicInterface._verified) or
-                isinstance(obj, DynamicInterface._unverified)
+            issubclass(obj_type, interface._unverified) or (
+                issubclass(obj_type, DynamicInterface._verified) or
+                issubclass(obj_type, DynamicInterface._unverified)
                 ) and obj.provides_interface(interface)
         ):
             # The object claims to provide the interface, either by
@@ -336,11 +308,12 @@ class InterfaceMetaclass(type):
 
         :return: True if interface is provided by the object, else False.
         """
+        obj_type = type(obj)
         return (
-            isinstance(obj, interface._verified) or
-            isinstance(obj, interface._unverified) or (
-                isinstance(obj, DynamicInterface._verified) or
-                isinstance(obj, DynamicInterface._unverified)) and
+            issubclass(obj_type, interface._verified) or
+            issubclass(obj_type, interface._unverified) or (
+                issubclass(obj_type, DynamicInterface._verified) or
+                issubclass(obj_type, DynamicInterface._unverified)) and
                 obj.provides_interface(interface)
             )
 
@@ -390,7 +363,7 @@ class Interface(metaclass=InterfaceMetaclass):
 def underlying_object(interface):
     """Obtain the non-interface object wrapped by this interface."""
     obj = interface
-    while isinstance(obj, Interface):
+    while issubclass(type(obj), Interface):
         obj = _getattribute(obj, 'provider')
     return obj
 
