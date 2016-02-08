@@ -68,13 +68,6 @@ class InterfaceConformanceError(Exception):
         return self.message
 
 
-# Declare the base classes for the `Interface` class here so the
-# metaclass `__new__` method can avoid running
-# `issubclass(base, Interface)` during the creation of the `Interface`
-# class, at a time when the name `Interface` does not exist.
-_InterfaceBaseClasses = (object,)
-
-
 def missing_attributes(obj, attributes):
     """Return a list of attributes not provided by an object."""
     missing = None
@@ -215,10 +208,7 @@ class InterfaceMetaclass(type):
         class_attributes = {}
         provider_attributes = set()
         for base in bases:
-            if (
-                base not in _InterfaceBaseClasses and
-                issubclass(base, Interface)
-            ):
+            if isinstance(base, InterfaceMetaclass):
                 # base class is a super-interface of this interface
                 # This interface provides all attributes from the base
                 # interface
@@ -362,7 +352,7 @@ class InterfaceMetaclass(type):
         return interface.provided_by(underlying_object(obj))
 
 
-class Interface(*_InterfaceBaseClasses, metaclass=InterfaceMetaclass):
+class Interface(metaclass=InterfaceMetaclass):
 
     def __init__(self, provider):
         """Wrap an object with an interface object."""
