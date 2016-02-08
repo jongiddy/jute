@@ -233,6 +233,16 @@ class InterfaceMetaclass(type):
         return super().__call__(obj)
 
     def __instancecheck__(interface, instance):
+        """
+        Support interface checking through type hints.
+
+        This creates an unusual class, where isinstance() returns whether an
+        object provides the interface, but issubclass() returns whether a class
+        is actually a subclass of Interface.  This supports using the interface
+        for type hinting.  One day Python may support a special method checking
+        if types are consistent, so users should not rely on this behaviour,
+        but should use `provided_by` directly.
+        """
         return interface.provided_by(instance)
 
     def cast(interface, source):
