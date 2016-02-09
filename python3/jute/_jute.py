@@ -297,7 +297,7 @@ class InterfaceMetaclass(type):
         issubclass(cls, cls)      # ensure cls can appear on both sides
         for base in interface.__mro__:
             if (
-                issubclass(base, Interface) and
+                isinstance(base, InterfaceMetaclass) and
                 cls not in base._verified and
                 cls not in base._unverified
             ):
@@ -375,7 +375,7 @@ class Interface(metaclass=InterfaceMetaclass):
 def underlying_object(interface):
     """Obtain the non-interface object wrapped by this interface."""
     obj = interface
-    while issubclass(type(obj), Interface):
+    while isinstance(type(obj), InterfaceMetaclass):
         obj = _getattribute(obj, 'provider')
     return obj
 
