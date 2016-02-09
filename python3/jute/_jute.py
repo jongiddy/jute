@@ -229,8 +229,10 @@ class InterfaceMetaclass(type):
             # interface, just return the same object.
             return obj
         interface.raise_if_not_provided_by(obj, validate)
-        # create a wrapper object to enforce only this interface.
-        return super().__call__(obj)
+        # If interface is provided by object, call type.__call__ which creates
+        # a wrapper object to enforce only this interface.
+        # Use underlying object to avoid calling through multiple wrappers.
+        return super().__call__(underlying_object(obj))
 
     def __instancecheck__(interface, instance):
         """
