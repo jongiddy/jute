@@ -96,6 +96,13 @@ def handle_call(self, *args, **kwargs):
 
 
 def handle_delattr(self, name):
+    """
+    Fail to delete an attribute.
+
+    Interface attributes cannot be deleted through the interface, as that
+    would make the interface invalid.  Non-interface attributes cannot be
+    seen through the interface, so cannot be deleted.
+    """
     if name in _getattribute(self, '_provider_attributes'):
         raise InterfaceConformanceError(
             'Cannot delete attribute {!r} through interface'.format(name))
@@ -106,10 +113,18 @@ def handle_delattr(self, name):
 
 
 def handle_dir(self):
+    """Return the supported attributes of this interface."""
     return _getattribute(self, '_provider_attributes')
 
 
 def handle_getattribute(self, name):
+    """
+    Check and return an attribute for the interface.
+
+    When an interface object has an attribute accessed, check that
+    the attribute is specified by the interface, and then retrieve
+    it from the wrapped object.
+    """
     if name in _getattribute(self, '_provider_attributes'):
         return getattr(_getattribute(self, 'provider'), name)
     else:
@@ -119,6 +134,7 @@ def handle_getattribute(self, name):
 
 
 def handle_init(self, provider):
+    """Wrap an object with an interface object."""
     # Use superclass __setattr__ in case interface defines __setattr__,
     # which points self's __setattr__ to underlying object.
     object.__setattr__(self, 'provider', provider)
@@ -133,6 +149,12 @@ def handle_next(self):
 
 
 def handle_setattr(self, name, value):
+    """
+    Set an attribute on an interface.
+
+    Check that the attribute is specified by the interface, and then
+    set it on the wrapped object.
+    """
     if name in _getattribute(self, '_provider_attributes'):
         return setattr(_getattribute(self, 'provider'), name, value)
     else:
@@ -142,6 +164,7 @@ def handle_setattr(self, name, value):
 
 
 def handle_repr(self):
+    """Return representation of interface."""
     return '<{}.{}({!r})>'.format(
         _getattribute(self, '__module__'),
         _getattribute(self, '__class__').__qualname__,
@@ -149,21 +172,15 @@ def handle_repr(self):
 
 SPECIAL_METHODS = {
     '__call__': handle_call,
-    '__delattr__': handle_delattr,
-    '__dir__': handle_dir,
     # If __getattribute__ raises an AttributeError, any __getattr__
     # method (but not the implicit object.__getattr__) is then called.
     # Keep things simple by not adding any __getattr__ method.  Adding
     # __getattr__ to an an interface definition is OK, and works due to
     # __getattribute__ implementation calling getattr() on the wrapped
     # object.
-    '__getattribute__': handle_getattribute,
-    '__init__': handle_init,
     '__iter__': handle_iter,
     '__next__': handle_next,
-    '__setattr__': handle_setattr,
     '__str__': mkdefault('__str__'),
-    '__repr__': handle_repr,
 }
 
 
@@ -176,7 +193,17 @@ class InterfaceMetaclass(type):
     def __new__(meta, name, bases, dct):
         # Called when a new class is defined.  Use the dictionary of
         # declared attributes to create a mapping to the wrapped object
-        class_attributes = {}
+
+        # Default attributes of all interfaces.  The methods that must be
+        # present to make an instance act as an interface.
+        class_attributes = {
+            '__init__': handle_init,
+            '__repr__': handle_repr,
+            '__dir__': handle_dir,
+            '__getattribute__': handle_getattribute,
+            '__setattr__': handle_setattr,
+            '__delattr__': handle_delattr,
+        }
         provider_attributes = set()
         for base in bases:
             if isinstance(base, InterfaceMetaclass):
@@ -339,37 +366,11 @@ class InterfaceMetaclass(type):
 
 class Interface(metaclass=InterfaceMetaclass):
 
-    def __init__(self, provider):
-        """Wrap an object with an interface object."""
+    """
+    An interface with no attributes.
+    """
 
-    def __repr__(self):
-        """Return representation of interface."""
-
-    def __dir__(self):
-        """Return the supported attributes of this interface."""
-
-    def __getattribute__(self, name):
-        """Check and return an attribute for the interface.
-
-        When an interface object has an attribute accessed, check that
-        the attribute is specified by the interface, and then retrieve
-        it from the wrapped object.
-        """
-
-    def __setattr__(self, name, value):
-        """Set an attribute on an interface.
-
-        Check that the attribute is specified by the interface, and then
-        set it on the wrapped object.
-        """
-
-    def __delattr__(self, name):
-        """Fail to delete an attribute.
-
-        Interface attributes cannot be deleted through the interface, as that
-        would make the interface invalid.  Non-interface attributes cannot be
-        seen through the interface, so cannot be deleted.
-        """
+    pass
 
 
 def underlying_object(interface):
