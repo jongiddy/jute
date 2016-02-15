@@ -1,9 +1,10 @@
 from ._jute import (
-    InterfaceMetaclass, Opaque, DynamicInterface, implements,
+    Attribute, InterfaceMetaclass, Opaque, DynamicInterface, implements,
     underlying_object, InterfaceConformanceError
 )
 
 __all__ = [
+    'Attribute',
     'InterfaceMetaclass',
     'Opaque',
     'DynamicInterface',

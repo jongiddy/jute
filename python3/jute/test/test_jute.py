@@ -1,14 +1,68 @@
 import unittest
 
 from jute import (
-    InterfaceMetaclass, DynamicInterface, implements, InterfaceConformanceError
+    Attribute, InterfaceMetaclass, DynamicInterface, implements,
+    InterfaceConformanceError
 )
+
+
+class ITest(metaclass=InterfaceMetaclass):
+
+    """A docstring"""
+
+    a = Attribute()
+
+    def b():
+        pass
+
+
+@implements(ITest)
+class TestProvider:
+
+    """Another docstring"""
+
+    a = 5
+
+    def b():
+        return 6
+
+    def c():
+        return 7
+
+
+class AttributeTests(unittest.TestCase):
+
+    def test_docstring(self):
+        """Provider does not have non-attribute/non-function."""
+        t = TestProvider()
+        i = ITest(t)
+        with self.assertRaises(AttributeError):
+            i.__doc__
+
+    def test_interface_attribute(self):
+        """Provider has attribute."""
+        t = TestProvider()
+        i = ITest(t)
+        i.a
+
+    def test_interface_function(self):
+        """Provider has function."""
+        t = TestProvider()
+        i = ITest(t)
+        i.b
+
+    def test_non_interface_attribute(self):
+        """Provider does not have attribute not in interface."""
+        t = TestProvider()
+        i = ITest(t)
+        with self.assertRaises(AttributeError):
+            i.c
 
 
 # Simple interface hierarchy for testing
 
 class IFoo(metaclass=InterfaceMetaclass):
-    foo = 99  # Initially set to 1 in implementations
+    foo = Attribute()  # Initially set to 1 in implementations
 
 
 class IFooBar(IFoo):

@@ -23,6 +23,8 @@ can be used to allow interface checks during debugging, and production
 code to use the original objects by running Python with the ``-O`` flag.
 """
 
+import types
+
 
 def mkmessage(obj, missing):
     if len(missing) == 1:
@@ -235,9 +237,10 @@ class InterfaceMetaclass(type):
                 # process, e.g. a literal `x.__iter__`
                 provider_attributes.add(key)
             else:
-                # All other attributes are simply mapped using
-                # `__getattribute__`.
-                provider_attributes.add(key)
+                # Attributes and functions are mapped using `__getattribute__`.
+                # Any other values (e.g. docstrings) are ignored.
+                if isinstance(value, (Attribute, types.FunctionType)):
+                    provider_attributes.add(key)
         class_attributes['_provider_attributes'] = provider_attributes
         interface = super().__new__(meta, name, bases, class_attributes)
         # An object wrapped by (a subclass of) the interface is
@@ -362,6 +365,11 @@ class InterfaceMetaclass(type):
         This is useful for feature checks with marker interfaces.
         """
         return interface.provided_by(underlying_object(obj))
+
+
+class Attribute:
+
+    pass
 
 
 class Opaque(metaclass=InterfaceMetaclass):

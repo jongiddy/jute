@@ -1,6 +1,6 @@
 import unittest
 
-from jute import InterfaceMetaclass, implements, underlying_object
+from jute import Attribute, InterfaceMetaclass, implements, underlying_object
 
 
 class ISettable(metaclass=InterfaceMetaclass):
@@ -8,7 +8,7 @@ class ISettable(metaclass=InterfaceMetaclass):
     def __setattr__(self, name, value):
         """Set an attribute."""
 
-    foo = int
+    foo = Attribute()
 
 
 class SetAttrTestMixin:

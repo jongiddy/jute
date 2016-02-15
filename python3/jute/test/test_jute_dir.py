@@ -1,6 +1,6 @@
 import unittest
 
-from jute import InterfaceMetaclass, implements
+from jute import Attribute, InterfaceMetaclass, implements
 
 
 class MyInterface(metaclass=InterfaceMetaclass):
@@ -8,7 +8,7 @@ class MyInterface(metaclass=InterfaceMetaclass):
     def foo(self):
         """A method."""
 
-    bar = int  # an attribute
+    bar = Attribute()  # an attribute
 
 
 @implements(MyInterface)
