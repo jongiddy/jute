@@ -1,6 +1,6 @@
 import unittest
 
-from jute import InterfaceMetaclass, DynamicInterface, implements
+from jute import Interface, DynamicInterface, implements
 
 
 # Note that an Iterator is a syntactic sub-class of Iterable, but it is
@@ -9,13 +9,13 @@ from jute import InterfaceMetaclass, DynamicInterface, implements
 # an iterable is a restartable "forward iterator".  In general, neither
 # of them can be used in all code that works with the other.
 
-class Iterable(metaclass=InterfaceMetaclass):
+class Iterable(metaclass=Interface):
 
     def __iter__(self):
         """Get an iterator."""
 
 
-class Iterator(metaclass=InterfaceMetaclass):
+class Iterator(metaclass=Interface):
 
     def __iter__(self):
         """Handle for loops."""

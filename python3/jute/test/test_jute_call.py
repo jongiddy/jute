@@ -1,9 +1,9 @@
 import unittest
 
-from jute import InterfaceMetaclass, DynamicInterface, implements
+from jute import Interface, DynamicInterface, implements
 
 
-class Callable(metaclass=InterfaceMetaclass):
+class Callable(metaclass=Interface):
 
     def __call__(self):
         """Interface for a callable."""

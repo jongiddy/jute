@@ -23,7 +23,7 @@ Module Reference
    validation to catch TypeError's (e.g. function parameter matching).
 
 
-.. py:metaclass:: InterfaceMetaclass
+.. py:metaclass:: Interface
 
    Create a class representing an interface.
    An interface instance will only provide the attributes defined in the class definition.

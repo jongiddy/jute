@@ -15,7 +15,7 @@ import jute
 # fails calling foo, bar, baz
 
 
-class Increments(metaclass=jute.InterfaceMetaclass):
+class Increments(metaclass=jute.Interface):
 
     def increment():
         """Increment something"""

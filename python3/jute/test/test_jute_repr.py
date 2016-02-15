@@ -1,12 +1,12 @@
 import unittest
 
-from jute import InterfaceMetaclass, implements
+from jute import Interface, implements
 
 
 # Use a nested class, to ensure __repr__ provides correct name.
 class Interfaces:
 
-    class MyInterface(metaclass=InterfaceMetaclass):
+    class MyInterface(metaclass=Interface):
 
         pass
 

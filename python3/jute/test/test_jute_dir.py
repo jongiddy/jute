@@ -1,12 +1,12 @@
 import unittest
 
-from jute import Attribute, InterfaceMetaclass, implements, Opaque
+from jute import Attribute, Interface, implements, Opaque
 
 
 class DirTest(unittest.TestCase):
 
     def test_interface_dir(self):
-        class MyInterface(metaclass=InterfaceMetaclass):
+        class MyInterface(metaclass=Interface):
 
             def foo(self):
                 """A method."""

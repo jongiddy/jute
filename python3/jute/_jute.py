@@ -186,7 +186,7 @@ SPECIAL_METHODS = {
 }
 
 
-class InterfaceMetaclass(type):
+class Interface(type):
 
     KEPT = frozenset((
         '__module__', '__qualname__',
@@ -208,7 +208,7 @@ class InterfaceMetaclass(type):
         }
         provider_attributes = set()
         for base in bases:
-            if isinstance(base, InterfaceMetaclass):
+            if isinstance(base, Interface):
                 # base class is a super-interface of this interface
                 # This interface provides all attributes from the base
                 # interface
@@ -327,7 +327,7 @@ class InterfaceMetaclass(type):
         issubclass(cls, cls)      # ensure cls can appear on both sides
         for base in interface.__mro__:
             if (
-                isinstance(base, InterfaceMetaclass) and
+                isinstance(base, Interface) and
                 cls not in base._verified and
                 cls not in base._unverified
             ):
@@ -372,7 +372,7 @@ class Attribute:
     pass
 
 
-class Opaque(metaclass=InterfaceMetaclass):
+class Opaque(metaclass=Interface):
 
     """
     An interface with no attributes.
@@ -392,7 +392,7 @@ class Opaque(metaclass=InterfaceMetaclass):
 def underlying_object(interface):
     """Obtain the non-interface object wrapped by this interface."""
     obj = interface
-    while isinstance(type(obj), InterfaceMetaclass):
+    while isinstance(type(obj), Interface):
         obj = _getattribute(obj, 'provider')
     return obj
 

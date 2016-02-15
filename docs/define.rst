@@ -1,13 +1,13 @@
 Define an Interface
 ===================
 
-Define an interface by setting a metaclass of ``jute.InterfaceMetaclass``.
+Define an interface by setting a metaclass of ``jute.Interface``.
 
 .. code-block:: python
 
     import jute
 
-    class Writable(metaclass=jute.InterfaceMetaclass):
+    class Writable(metaclass=jute.Interface):
         def write(self, buf):
             """Function to write a string."""
 
@@ -41,7 +41,7 @@ additional syntax:
         # more expensive operation
         add_line_buffering(out, buf)
 
-Using subclassing, it is possible to define an interface by subclassing the empty interface ``jute.Opaque``.
+Subclassing the empty interface ``jute.Opaque`` provides an alternative way to define an interface.
 
 .. code-block:: python
 
