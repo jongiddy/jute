@@ -374,19 +374,19 @@ class Attribute:
 
 class Opaque(metaclass=InterfaceMetaclass):
 
-    # An interface with no attributes.
-    #
-    # This interface has two uses.
-    #
-    # It can be used as an opaque handle to an object.  A method can
-    # return an object wrapped by Opaque in order to make it inscrutable
-    # to callers.
-    #
-    # In addition, it provides an alternative to declaring interfaces
-    # using the metaclass.  Simply inherit from Opaque to create an
-    # interface.
+    """
+    An interface with no attributes.
 
-    pass
+    This interface has two uses.
+
+    It can be used as an opaque handle to an object.  A method can
+    return an object wrapped by Opaque in order to make it inscrutable
+    to callers.
+
+    In addition, it provides an alternative to declaring interfaces
+    using the metaclass.  Simply inherit from Opaque to create an
+    interface.
+    """
 
 
 def underlying_object(interface):
