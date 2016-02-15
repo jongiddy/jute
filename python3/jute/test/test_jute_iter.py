@@ -1,12 +1,12 @@
 import unittest
 
-from jute import Interface, DynamicInterface, implements
+from jute import InterfaceMetaclass, DynamicInterface, implements
 
 
 count_to_5 = range(5)
 
 
-class Iterable(Interface):
+class Iterable(metaclass=InterfaceMetaclass):
 
     def __iter__(self):
         """Interface for an iterable."""

@@ -1,6 +1,6 @@
 import unittest
 
-from jute import DynamicInterface, Interface, implements
+from jute import DynamicInterface, InterfaceMetaclass, implements
 
 
 class ProvidedByTests(unittest.TestCase):
@@ -36,7 +36,7 @@ class ProvidedByTests(unittest.TestCase):
         )
 
 
-class IFoo(Interface):
+class IFoo(metaclass=InterfaceMetaclass):
 
     def foo(self):
         """"""

@@ -223,7 +223,7 @@ class InterfaceMetaclass(type):
                 # Special methods (e.g. __call__, __iter__) bypass the usual
                 # getattribute machinery. To ensure that the interface behaves
                 # in the same way as the original instance, create the special
-                # method on the Interface object, which acts in the same way
+                # method on the interface object, which acts in the same way
                 # as the original object.  It is important to ensure that
                 # interfaces work the same as the wrapped object, to avoid new
                 # errors occurring in production code if the user wraps
@@ -248,7 +248,7 @@ class InterfaceMetaclass(type):
         return interface
 
     def __call__(interface, obj, validate=None):
-        # Calling Interface(object) will call this function first.  We
+        # Calling interface(object) will call this function first.  We
         # get a chance to return the same object if suitable.
         """Cast the object to this interface."""
         if type(obj) is interface:
@@ -267,10 +267,10 @@ class InterfaceMetaclass(type):
 
         This creates an unusual class, where isinstance() returns whether an
         object provides the interface, but issubclass() returns whether a class
-        is actually a subclass of Interface.  This supports using the interface
-        for type hinting.  One day Python may support a special method checking
-        if types are consistent, so users should not rely on this behaviour,
-        but should use `provided_by` directly.
+        is actually a subclass of an interface.  This supports using the
+        interface for type hinting.  One day Python may support a special
+        method checking if types are consistent, so users should not rely on
+        this behaviour, but should use `provided_by` directly.
         """
         return interface.provided_by(instance)
 
@@ -364,11 +364,19 @@ class InterfaceMetaclass(type):
         return interface.provided_by(underlying_object(obj))
 
 
-class Interface(metaclass=InterfaceMetaclass):
+class Opaque(metaclass=InterfaceMetaclass):
 
-    """
-    An interface with no attributes.
-    """
+    # An interface with no attributes.
+    #
+    # This interface has two uses.
+    #
+    # It can be used as an opaque handle to an object.  A method can
+    # return an object wrapped by Opaque in order to make it inscrutable
+    # to callers.
+    #
+    # In addition, it provides an alternative to declaring interfaces
+    # using the metaclass.  Simply inherit from Opaque to create an
+    # interface.
 
     pass
 
@@ -381,7 +389,7 @@ def underlying_object(interface):
     return obj
 
 
-class DynamicInterface(Interface):
+class DynamicInterface(Opaque):
 
     """Interface to dynamically provide other interfaces."""
 

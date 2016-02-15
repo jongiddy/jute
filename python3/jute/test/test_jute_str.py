@@ -1,9 +1,9 @@
 import unittest
 
-from jute import Interface, DynamicInterface, implements
+from jute import InterfaceMetaclass, DynamicInterface, implements
 
 
-class StringLike(Interface):
+class StringLike(metaclass=InterfaceMetaclass):
 
     def __str__(self):
         """Return string representation."""

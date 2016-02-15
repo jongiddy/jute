@@ -1,13 +1,13 @@
 import unittest
 
 from jute import (
-    Interface, DynamicInterface, implements, InterfaceConformanceError
+    InterfaceMetaclass, DynamicInterface, implements, InterfaceConformanceError
 )
 
 
 # Simple interface hierarchy for testing
 
-class IFoo(Interface):
+class IFoo(metaclass=InterfaceMetaclass):
     foo = 99  # Initially set to 1 in implementations
 
 
@@ -286,7 +286,7 @@ class FooBarRegisteredImplementationNoFoo:
 IFooBar.register_implementation(FooBarRegisteredImplementationNoFoo)
 
 
-class Capitalizable(Interface):
+class Capitalizable(metaclass=InterfaceMetaclass):
 
     """An interface provided by string type."""
 

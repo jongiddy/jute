@@ -23,19 +23,22 @@ Module Reference
    validation to catch TypeError's (e.g. function parameter matching).
 
 
-.. py:class:: Interface(provider)
+.. py:metaclass:: InterfaceMetaclass
 
-   Class representing an interface.
+   Create a class representing an interface.
    An interface instance will only provide the attributes defined in the class definition.
-   To convert an object that provides an interface to an interface instance, call the constructor with the object that supports the interface.
 
-   .. py:classmethod:: register_implementation(cls)
+   .. py:method:: __call__(cls)
+
+      Convert an object that provides an interface to a provider instance.
+
+   .. py:method:: register_implementation(cls)
 
       Register a class that provides the interface.
       An implementing class has all the attributes defined in the interface.
       Therefore, the class can be verified once, rather than verifying each instance separately.
 
-   .. py:classmethod:: implemented_by(cls)
+   .. py:method:: implemented_by(cls)
 
       Check if class claims to provide the interface.
       Both implementing and providing classes return True.
@@ -43,7 +46,7 @@ Module Reference
 
       :return: True if interface is implemented by the class, else False.
 
-   .. py:classmethod:: provided_by(obj)
+   .. py:method:: provided_by(obj)
 
       Check if object claims to provide the interface.
       This will be true if the object's class claims to provide the interface.
@@ -56,7 +59,7 @@ Module Reference
       The remaining functions break the abstraction provided by interfaces,
       allowing the caller to obtain more information about the wrapped object.
 
-   .. py:classmethod:: supported_by(obj)
+   .. py:method:: supported_by(obj)
 
       Check if underlying object claims to provide the interface.
 
@@ -68,14 +71,13 @@ Module Reference
       :return: True if the underlying object claims to provide the interface,
          or False otherwise.
 
-   .. py:classmethod:: cast(source)
+   .. py:method:: cast(source)
 
       Attempt to cast one interface to another.
 
       The ``cast`` method allows the caller to access another supported interface.
       Whether this works depends on whether the underlying object supports this interface.
       Use of ``cast`` should be avoided, since it breaks the model of interface-based programming.
-
 
 .. py:decorator:: implements(*interfaces)
 
@@ -84,7 +86,7 @@ Module Reference
    To implement an interface, the class instances must define all attributes in the interface.
 
 
-.. py:class:: DynamicInterface(provider)
+.. py:clss:: DynamicInterface(provider)
 
    Interface to dynamically provide other interfaces.
 
@@ -102,5 +104,4 @@ Module Reference
 
    Use of the ``underlying_object`` function should be avoided, since it breaks the model of interface-based programming.
    It is primarily useful for debugging.
-
 

@@ -1,7 +1,7 @@
 import unittest
 
 from jute import (
-    Interface, DynamicInterface, implements, InterfaceConformanceError
+    InterfaceMetaclass, DynamicInterface, implements, InterfaceConformanceError
 )
 
 
@@ -37,7 +37,7 @@ def result(f, *args, **kw):
         return Result.exception(e)
 
 
-class IFoo(Interface):
+class IFoo(metaclass=InterfaceMetaclass):
 
     foo = int
 

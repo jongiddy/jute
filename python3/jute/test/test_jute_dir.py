@@ -1,9 +1,9 @@
 import unittest
 
-from jute import Interface, implements
+from jute import InterfaceMetaclass, implements
 
 
-class MyInterface(Interface):
+class MyInterface(metaclass=InterfaceMetaclass):
 
     def foo(self):
         """A method."""
@@ -27,9 +27,5 @@ class DirTest(unittest.TestCase):
 
     def test_interface_dir(self):
         obj = MyClass()
-        interface_attibutes = dir(Interface(obj))
         inf = MyInterface(obj)
-        self.assertEqual(
-            sorted(dir(inf)),
-            sorted(['foo', 'bar'] + interface_attibutes)
-        )
+        self.assertEqual(sorted(dir(inf)), sorted(['foo', 'bar']))

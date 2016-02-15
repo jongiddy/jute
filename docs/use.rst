@@ -72,11 +72,11 @@ watching object from accidentally notifying completion.
 
 .. code-block:: python
 
-    class Notifiable(jute.Interface):
+    class Notifiable(metaclass=jute.InterfaceMetaclass):
         def notify(self):
             """Notify that an event occurred."""
 
-    class Watchable(jute.Interface):
+    class Watchable(metaclass=jute.InterfaceMetaclass):
         def watch(self, callback):
             """Get called when an event occurs."""
 
