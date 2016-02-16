@@ -238,9 +238,11 @@ class Interface(type):
                 provider_attributes.add(key)
             else:
                 # Attributes and functions are mapped using `__getattribute__`.
-                # Any other values (e.g. docstrings) are ignored.
+                # Any other values (e.g. docstrings) are attached to the class.
                 if isinstance(value, (Attribute, types.FunctionType)):
                     provider_attributes.add(key)
+                else:
+                    class_attributes[key] = value
         class_attributes['_provider_attributes'] = provider_attributes
         interface = super().__new__(meta, name, bases, class_attributes)
         # An object wrapped by (a subclass of) the interface is

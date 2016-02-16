@@ -32,20 +32,24 @@ class TestProvider:
 
 class AttributeTests(unittest.TestCase):
 
-    def test_docstring(self):
+    def test_provider_docstring(self):
         """Provider does not have non-attribute/non-function."""
         t = TestProvider()
         i = ITest(t)
         with self.assertRaises(AttributeError):
             i.__doc__
 
-    def test_interface_attribute(self):
+    def test_interface_has_docstring(self):
+        """Interface has non-attribute/non-function."""
+        ITest.__doc__
+
+    def test_provider_attribute(self):
         """Provider has attribute."""
         t = TestProvider()
         i = ITest(t)
         i.a
 
-    def test_interface_function(self):
+    def test_provider_function(self):
         """Provider has function."""
         t = TestProvider()
         i = ITest(t)
