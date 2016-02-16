@@ -174,16 +174,8 @@ def handle_repr(self):
 
 SPECIAL_METHODS = {
     '__call__': handle_call,
-    # If __getattribute__ raises an AttributeError, any __getattr__
-    # method (but not the implicit object.__getattr__) is then called.
-    # Keep things simple by not adding any __getattr__ method.  Adding
-    # __getattr__ to an an interface definition is OK, and works due to
-    # __getattribute__ implementation calling getattr() on the wrapped
-    # object.
-    '__bytes__': mkdefault('__bytes__'),
     '__iter__': handle_iter,
     '__next__': handle_next,
-    '__str__': mkdefault('__str__'),
 }
 
 
@@ -212,21 +204,33 @@ class Interface(type):
                 # A few attributes need to be kept pointing to the
                 # new interface object.
                 class_attributes[key] = value
-            elif key in SPECIAL_METHODS:
-                # Special methods (e.g. __call__, __iter__) bypass the usual
-                # getattribute machinery. To ensure that the interface behaves
-                # in the same way as the original instance, create the special
-                # method on the interface object, which acts in the same way
-                # as the original object.  It is important to ensure that
-                # interfaces work the same as the wrapped object, to avoid new
-                # errors occurring in production code if the user wraps
-                # interface casting in 'if __debug__:'.
-                class_attributes[key] = SPECIAL_METHODS[key]
-                # Also add the name to `provider_attributes` to ensure
-                # that `__getattribute__` does not reject the name for
-                # the cases where Python does go through the usual
-                # process, e.g. a literal `x.__iter__`
-                provider_attributes.add(key)
+            elif key.startswith('__') and key.endswith('__'):
+                if isinstance(value, types.FunctionType):
+                    func = SPECIAL_METHODS.get(key)
+                    if func is None:
+                        func = mkdefault(key)
+                    # Special methods (e.g. __call__, __iter__) bypass the
+                    # usual getattribute machinery. To ensure that the
+                    # interface behaves in the same way as the original
+                    # instance, create the special method on the interface
+                    # object, which acts in the same way as the original
+                    # object.  It is important to ensure that interfaces work
+                    # the same as the wrapped object, to avoid new errors
+                    # occurring in production code if the user wraps interface
+                    # casting in 'if __debug__:'.
+                    class_attributes[key] = func
+                    # Also add the name to `provider_attributes` to ensure
+                    # that `__getattribute__` does not reject the name for
+                    # the cases where Python does go through the usual
+                    # process, e.g. a literal `x.__iter__`
+                    provider_attributes.add(key)
+                else:
+                    # Add attribute to interface class, but not to provider
+                    # instances.  This is appropriate for ``__doc__``, where
+                    # we want to see the docstring when looking at the class
+                    # (for generating documentation), but don't want it to
+                    # exist for the provider.
+                    class_attributes[key] = value
             else:
                 # Attributes and functions are mapped using `__getattribute__`.
                 # Any other values (e.g. docstrings) are not accessible through
@@ -246,6 +250,14 @@ class Interface(type):
             '__setattr__': handle_setattr,
             '__delattr__': handle_delattr,
         })
+        # If __getattribute__ raises an AttributeError, any __getattr__
+        # method (but not the implicit object.__getattr__) is then
+        # called.  Keep things simple by not adding any __getattr__
+        # method.  Adding __getattr__ to the provider definition is OK,
+        # and works due to __getattribute__ implementation calling
+        # getattr() on the wrapped object.
+        if '__getattr__' in class_attributes:
+            del class_attributes['__getattr__']
         interface = super().__new__(meta, name, bases, class_attributes)
         # An object wrapped by (a subclass of) the interface is
         # guaranteed to provide the matching attributes.
