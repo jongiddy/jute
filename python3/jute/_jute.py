@@ -180,6 +180,7 @@ SPECIAL_METHODS = {
     # __getattr__ to an an interface definition is OK, and works due to
     # __getattribute__ implementation calling getattr() on the wrapped
     # object.
+    '__bytes__': mkdefault('__bytes__'),
     '__iter__': handle_iter,
     '__next__': handle_next,
     '__str__': mkdefault('__str__'),
@@ -195,17 +196,7 @@ class Interface(type):
     def __new__(meta, name, bases, dct):
         # Called when a new class is defined.  Use the dictionary of
         # declared attributes to create a mapping to the wrapped object
-
-        # Default attributes of all interfaces.  The methods that must be
-        # present to make an instance act as an interface.
-        class_attributes = {
-            '__init__': handle_init,
-            '__repr__': handle_repr,
-            '__dir__': handle_dir,
-            '__getattribute__': handle_getattribute,
-            '__setattr__': handle_setattr,
-            '__delattr__': handle_delattr,
-        }
+        class_attributes = {}
         provider_attributes = set()
         for base in bases:
             if isinstance(base, Interface):
@@ -238,12 +229,23 @@ class Interface(type):
                 provider_attributes.add(key)
             else:
                 # Attributes and functions are mapped using `__getattribute__`.
-                # Any other values (e.g. docstrings) are attached to the class.
+                # Any other values (e.g. docstrings) are not accessible through
+                # provider instances.
                 if isinstance(value, (Attribute, types.FunctionType)):
                     provider_attributes.add(key)
-                else:
-                    class_attributes[key] = value
+                # All values are added as class attributes, to make docs work.
+                class_attributes[key] = value
         class_attributes['_provider_attributes'] = provider_attributes
+        # Default attributes of all interfaces.  The methods that must be
+        # present to make an instance act as an interface.
+        class_attributes.update({
+            '__init__': handle_init,
+            '__repr__': handle_repr,
+            '__dir__': handle_dir,
+            '__getattribute__': handle_getattribute,
+            '__setattr__': handle_setattr,
+            '__delattr__': handle_delattr,
+        })
         interface = super().__new__(meta, name, bases, class_attributes)
         # An object wrapped by (a subclass of) the interface is
         # guaranteed to provide the matching attributes.
