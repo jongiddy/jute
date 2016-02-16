@@ -226,10 +226,11 @@ class Interface(type):
                     provider_attributes.add(key)
                 else:
                     # Add attribute to interface class, but not to provider
-                    # instances.  This is appropriate for ``__doc__``, where
-                    # we want to see the docstring when looking at the class
-                    # (for generating documentation), but don't want it to
-                    # exist for the provider.
+                    # instances.  This is appropriate for the interface
+                    # docstring (``__doc__``), where we want to see the
+                    # docstring when looking at the class (for generating
+                    # documentation), but don't want it to exist for the
+                    # provider.
                     class_attributes[key] = value
             else:
                 # Attributes and functions are mapped using `__getattribute__`.
@@ -237,7 +238,8 @@ class Interface(type):
                 # provider instances.
                 if isinstance(value, (Attribute, types.FunctionType)):
                     provider_attributes.add(key)
-                # All values are added as class attributes, to make docs work.
+                # All values are added as class attributes, to allow
+                # interface method docstrings to be read.
                 class_attributes[key] = value
         class_attributes['_provider_attributes'] = provider_attributes
         # Default attributes of all interfaces.  The methods that must be
