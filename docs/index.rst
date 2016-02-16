@@ -29,7 +29,8 @@ Contents:
    define
    implement
    use
-   reference
+   jute
 
+* :ref:`genindex`
 * :ref:`search`
 

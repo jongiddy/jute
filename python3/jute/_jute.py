@@ -52,13 +52,13 @@ class InterfaceConformanceError(Exception):
     It could also be considered an AttributeError, as when validation is
     off, that is the alternative exception (that might be) raised.
     However, future versions of this module may perform additional
-    validation to catch TypeError's (e.g. function paramete matching).
+    validation to catch TypeError's (e.g. function parameter matching).
 
     It was also tempting to raise a NotImplementedError, which captures
     some of the meaning. However, NotImplementedError is usually used
     as a marker for abstract methods or in-progress partial
     implementations.  In particular, a developer of an interface
-    provider class may use NotImplementedError to satisy the interface
+    provider class may use NotImplementedError to satisfy the interface
     where they know the code does not use a particular attribute of the
     interface.  Using a different exception causes less confusion.
     """
@@ -189,7 +189,7 @@ SPECIAL_METHODS = {
 
 class Interface(type):
 
-    KEPT = frozenset((
+    _KEPT = frozenset((
         '__module__', '__qualname__',
     ))
 
@@ -208,7 +208,7 @@ class Interface(type):
         for key, value in dct.items():
             # Almost all attributes on the interface are mapped to
             # return the equivalent attributes on the wrapped object.
-            if key in meta.KEPT:
+            if key in meta._KEPT:
                 # A few attributes need to be kept pointing to the
                 # new interface object.
                 class_attributes[key] = value
@@ -282,18 +282,20 @@ class Interface(type):
         return interface.provided_by(instance)
 
     def cast(interface, source):
-        """Attempt to cast one interface to another.
+        """
+        Attempt to cast one interface to another.
 
-        Whether this works depends on whether the underlying object supports
-        this interface.
+        The ``cast`` method allows the caller to access another supported
+        interface.  Whether this works depends on whether the underlying object
+        supports this interface.  Use of ``cast`` should be avoided, since it
+        breaks the model of interface-based programming.
         """
         return interface(underlying_object(source))
 
     def raise_if_not_provided_by(interface, obj, validate=None):
-        """Check if object provides the interface.
-
-        :raise: an informative error if not. For example, a
-        non-implemented attribute is returned in the exception.
+        """
+        Check if object provides the interface. Raise an informative error if
+        not.
         """
         obj_type = type(obj)
         if issubclass(obj_type, interface._verified):
@@ -327,7 +329,13 @@ class Interface(type):
                     obj, interface.__name__))
 
     def register_implementation(interface, cls):
-        """Register a provider class to the interface."""
+        """
+        Register a provider class to the interface.
+
+        This is useful for declaring that a standard or third-party class
+        provides an interface, when it cannot be decorated with the
+        ``@implements`` decorator.
+        """
         issubclass(cls, cls)      # ensure cls can appear on both sides
         for base in interface.__mro__:
             if (
@@ -338,12 +346,16 @@ class Interface(type):
                 base._unverified += (cls,)
 
     def implemented_by(interface, cls):
-        """Check if class claims to provide the interface.
-
-        :return: True if interface is implemented by the class, else False.
         """
-        # Contrast this function with `provided_by`. Note that DynamicInterface
-        # classes cannot dynamically claim to implement an interface.
+        Check if class claims to provide the interface.
+
+        Note that ``DynamicInterface`` classes cannot dynamically claim to
+        `implement` an interface, although individual instances can claim to
+        `provide` an interface.
+
+        :return bool: True if interface is implemented by the class, else
+            False.
+        """
         return (
             issubclass(cls, interface._verified) or
             issubclass(cls, interface._unverified)
@@ -352,7 +364,12 @@ class Interface(type):
     def provided_by(interface, obj):
         """Check if object claims to provide the interface.
 
-        :return: True if interface is provided by the object, else False.
+        This will be true if the object's class claims to provide the
+        interface.  It will also be true if the object provides the
+        ``DynamicInterface`` interface, and the object's ``provides_interface``
+        method returns ``True`` when passed this interface.
+
+        :return bool: True if interface is provided by the object, else False.
         """
         obj_type = type(obj)
         return (
@@ -364,16 +381,44 @@ class Interface(type):
             )
 
     def supported_by(interface, obj):
-        """Check if underlying object claims to provide the interface.
+        """
+        Check if underlying object claims to provide the interface.
 
-        This is useful for feature checks with marker interfaces.
+        Although it allows the caller to see if the underlying object supports
+        an interface, it does not provide access to the interface, unless the
+        interfaces contain attributes in common.  This makes it most useful for
+        performing feature checks for marker interfaces (interfaces that have
+        the same syntax, but different semantics to the supplied interface).
+
+        :return bool: True if the underlying object claims to provide the
+            interface, or False otherwise.
         """
         return interface.provided_by(underlying_object(obj))
 
 
 class Attribute:
 
-    pass
+    """
+    Specify a non-function attribute in an interface.
+
+    Any attribute which is part of an interface, but is not a method,
+    should be defined as an Attribute::
+
+        class IExample(metaclass=Interface):
+
+            value = Attribute()
+
+            def double(self):
+                \"""Return twice the value.\"""
+
+        @implements(IExample)
+        class Example:
+
+            value = 1
+
+            def double(self):
+                return 2 * self.value
+    """
 
 
 class Opaque(metaclass=Interface):
@@ -394,7 +439,13 @@ class Opaque(metaclass=Interface):
 
 
 def underlying_object(interface):
-    """Obtain the non-interface object wrapped by this interface."""
+    """
+    Obtain the non-interface object wrapped by this interface.
+
+    Use of the ``underlying_object`` function should be avoided, since it
+    breaks the model of interface-based programming.  It is primarily useful
+    for debugging.
+    """
     obj = interface
     while isinstance(type(obj), Interface):
         obj = _getattribute(obj, 'provider')
@@ -414,7 +465,12 @@ class DynamicInterface(Opaque):
 
 
 def implements(*interfaces):
-    """Decorator to mark a class as implementing an interface."""
+    """
+    Decorator to mark a class as implementing the supplied interfaces.
+
+    To implement an interface, the class instances must define all attributes
+    in the interface.
+    """
     # The decorator does not wrap the class. It simply runs the
     # `register_implementation` method for each interface, and returns
     # the original class.  This handily avoids many of the problems
