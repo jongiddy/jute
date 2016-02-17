@@ -303,6 +303,27 @@ class Interface(type):
         interface.  Whether this works depends on whether the underlying object
         supports this interface.  Use of ``cast`` should be avoided, since it
         breaks the model of interface-based programming.
+
+        Note that upcasting (casting an interface to a base interface) can be
+        done by calling the interface constructor::
+
+            class IFoo(metaclass=Interface):
+                \"""An interface.\"""
+
+            class IFooBar(IFoo):
+                \"""A sub-interface of IFoo.\"""
+
+            class IBaz(metaclass=Interface):
+                \"""A completely different interface.\"""
+
+            @implements(IFooBar, IBaz)
+            class FooBarBaz:
+                \"""A class that implements all the above interfaces.\"""
+
+            fb1 = IFooBar(FooBarBaz())
+            foo = IFoo(fb1)      # upcast does not need cast
+            fb2 = IFooBar.cast(foo)  # downcast needs a cast
+            baz = IBaz.cast(fb2)     # sidecast needs a cast
         """
         return interface(underlying_object(source))
 
