@@ -466,7 +466,7 @@ def underlying_object(interface):
     return obj
 
 
-class DynamicInterface(Opaque):
+class DynamicInterface(metaclass=Interface):
 
     """Interface to dynamically provide other interfaces."""
 
