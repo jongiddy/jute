@@ -42,25 +42,27 @@ class InterfaceConformanceError(Exception):
     Exception indicating that an object claims to provide an interface,
     but does not match the interface specification.
 
-    This is almost a TypeError, but an object provides two parts to its
-    interface implementation: a claim to provide the interface, and the
-    attributes that match the interface specification.  This exception
-    indicates the partial match of claiming to provide the interface,
-    but not actually providing all the attributes required by an
-    interface.
+    This is almost a :py:exc:`TypeError`, but an object provides two
+    parts to its interface implementation: a claim to provide the
+    interface, and the attributes that match the interface specification.
+    This exception indicates the partial match of claiming to provide
+    the interface, but not actually providing all the attributes
+    required by an interface.
 
-    It could also be considered an AttributeError, as when validation is
-    off, that is the alternative exception (that might be) raised.
-    However, future versions of this module may perform additional
-    validation to catch TypeError's (e.g. function parameter matching).
+    It could also be considered an :py:exc:`AttributeError`, as when
+    validation is off, that is the alternative exception (that might be)
+    raised.  However, future versions of this module may perform
+    additional validation to catch :py:exc:`TypeError`'s (e.g. function
+    parameter matching).
 
-    It was also tempting to raise a NotImplementedError, which captures
-    some of the meaning. However, NotImplementedError is usually used
-    as a marker for abstract methods or in-progress partial
-    implementations.  In particular, a developer of an interface
-    provider class may use NotImplementedError to satisfy the interface
-    where they know the code does not use a particular attribute of the
-    interface.  Using a different exception causes less confusion.
+    It was also tempting to raise a :py:exc:`NotImplementedError`, which
+    captures some of the meaning. However, :py:exc:`NotImplementedError`
+    is usually used as a marker for abstract methods or in-progress
+    partial implementations.  In particular, a developer of an interface
+    provider class may use :py:exc:`NotImplementedError` to satisfy the
+    interface where they know the code does not use a particular
+    attribute of the interface.  Using a different exception causes less
+    confusion.
     """
 
     def __init__(self, message):
@@ -181,6 +183,21 @@ SPECIAL_METHODS = {
 
 class Interface(type):
 
+    """
+    A metaclass to allow classes to define interfaces.
+
+    Each class with this metaclass will create an interface allowing
+    access only to the attributes in the class.  Attributes can be
+    provided as functions or using the :py:class:`.Attribute` class.
+    Any other types will be available as attributes of the interface
+    class, but not as attributes of interface instances.
+
+    An instances of the interface class is a called a provider.  A
+    provider maps interface attributes to an underlying Python object.
+    The provider behaves the same as the underlying object, but only
+    allows access to the attributes named in the interface.
+    """
+
     _KEPT = frozenset((
         '__module__', '__qualname__',
     ))
@@ -286,12 +303,13 @@ class Interface(type):
         """
         Support interface checking through type hints.
 
-        This creates an unusual class, where isinstance() returns whether an
-        object provides the interface, but issubclass() returns whether a class
-        is actually a subclass of an interface.  This supports using the
-        interface for type hinting.  One day Python may support a special
-        method checking if types are consistent, so users should not rely on
-        this behaviour, but should use `provided_by` directly.
+        This creates an unusual class, where :py:func:`isinstance` returns
+        whether an object provides the interface, but :py:func:`issubclass`
+        returns whether a class is actually a subclass of an interface.  This
+        supports using the interface for type hinting.  One day Python may
+        support a special method checking if types are consistent, so users
+        should not rely on this behaviour, but should call the
+        :py:meth:`.provided_by` method directly.
         """
         return interface.provided_by(instance)
 
@@ -299,21 +317,20 @@ class Interface(type):
         """
         Attempt to cast one interface to another.
 
-        The ``cast`` method allows the caller to access another supported
-        interface.  Whether this works depends on whether the underlying object
-        supports this interface.  Use of ``cast`` should be avoided, since it
-        breaks the model of interface-based programming.
+        This method allows the caller to access another interface supported by
+        the underlying object.  Use the :py:meth:`.cast` method sparingly,
+        since it breaks the model of interface-based programming.
 
         Note that upcasting (casting an interface to a base interface) can be
         done by calling the interface constructor::
 
-            class IFoo(metaclass=Interface):
+            class IFoo(metaclass=jute.Interface):
                 \"""An interface.\"""
 
             class IFooBar(IFoo):
                 \"""A sub-interface of IFoo.\"""
 
-            class IBaz(metaclass=Interface):
+            class IBaz(metaclass=jute.Interface):
                 \"""A completely different interface.\"""
 
             @implements(IFooBar, IBaz)
@@ -329,7 +346,7 @@ class Interface(type):
 
     def raise_if_not_provided_by(interface, obj, validate=None):
         """
-        Check if object provides the interface. Raise an informative error if
+        Return if object provides the interface. Raise an informative error if
         not.
         """
         obj_type = type(obj)
@@ -369,7 +386,7 @@ class Interface(type):
 
         This is useful for declaring that a standard or third-party class
         provides an interface, when it cannot be decorated with the
-        ``@implements`` decorator.
+        :py:data:`.implements` decorator.
         """
         issubclass(cls, cls)      # ensure cls can appear on both sides
         for base in interface.__mro__:
@@ -384,12 +401,12 @@ class Interface(type):
         """
         Check if class claims to provide the interface.
 
-        Note that ``DynamicInterface`` classes cannot dynamically claim to
-        `implement` an interface, although individual instances can claim to
-        `provide` an interface.
+        Note that classes that implement the :py:class:`.DynamicInterface`
+        interface cannot dynamically claim to `implement` an interface,
+        although individual instances can claim to `provide` an interface.
 
-        :return bool: True if interface is implemented by the class, else
-            False.
+        :return bool: :py:obj:`True` if interface is implemented by the class,
+            else :py:obj:`False`.
         """
         return (
             issubclass(cls, interface._verified) or
@@ -401,10 +418,12 @@ class Interface(type):
 
         This will be true if the object's class claims to provide the
         interface.  It will also be true if the object provides the
-        ``DynamicInterface`` interface, and the object's ``provides_interface``
-        method returns ``True`` when passed this interface.
+        :py:class:`.DynamicInterface` interface, and the
+        :py:meth:`.DynamicInterface.provides_interface` method returns
+        :py:obj:`True` when passed this interface.
 
-        :return bool: True if interface is provided by the object, else False.
+        :return bool: :py:obj:`True` if interface is provided by the object,
+            else :py:obj:`False`.
         """
         obj_type = type(obj)
         return (
@@ -425,8 +444,8 @@ class Interface(type):
         performing feature checks for marker interfaces (interfaces that have
         the same syntax, but different semantics to the supplied interface).
 
-        :return bool: True if the underlying object claims to provide the
-            interface, or False otherwise.
+        :return bool: :py:obj:`True` if the underlying object claims to provide
+            the interface, or :py:obj:`False` otherwise.
         """
         return interface.provided_by(underlying_object(obj))
 
@@ -437,11 +456,11 @@ class Attribute:
     Specify a non-function attribute in an interface.
 
     Any attribute which is part of an interface, but is not a method,
-    should be defined as an Attribute::
+    should be defined as an :py:class:`.Attribute`::
 
-        class IExample(metaclass=Interface):
+        class IExample(metaclass=jute.Interface):
 
-            value = Attribute()
+            value = jute.Attribute()
 
             def double(self):
                 \"""Return twice the value.\"""
@@ -464,12 +483,20 @@ class Opaque(metaclass=Interface):
     This interface has two uses.
 
     It can be used as an opaque handle to an object.  A method can
-    return an object wrapped by Opaque in order to make it inscrutable
-    to callers.
+    return an object wrapped by :py:class:`Opaque` in order to make it
+    inscrutable to callers.
 
     In addition, it provides an alternative to declaring interfaces
-    using the metaclass.  Simply inherit from Opaque to create an
-    interface.
+    using the :py:class:`Interface` metaclass.  Simply inherit from
+    :py:class:`Opaque` to create an interface::
+
+        class IExample(jute.Opaque):
+
+            value = jute.Attribute()
+
+            def double(self):
+                \"""Return twice the value.\"""
+
     """
 
 
@@ -477,9 +504,9 @@ def underlying_object(interface):
     """
     Obtain the non-interface object wrapped by this interface.
 
-    Use of the ``underlying_object`` function should be avoided, since it
-    breaks the model of interface-based programming.  It is primarily useful
-    for debugging.
+    Use the :py:func:`underlying_object` function sparingly, since it
+    breaks the model of interface-based programming.  It is primarily
+    useful for debugging.
     """
     obj = interface
     while isinstance(type(obj), Interface):
@@ -494,8 +521,8 @@ class DynamicInterface(metaclass=Interface):
     def provides_interface(self, interface):
         """Check whether this instance provides an interface.
 
-        This method returns True when the interface class is provided,
-        or False when the interface is not provided.
+        This method returns :py:obj:`True` when the interface class is
+        provided, or :py:obj:`False` when the interface is not provided.
         """
 
 
