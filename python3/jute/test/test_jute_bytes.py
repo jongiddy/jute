@@ -1,9 +1,9 @@
 import unittest
 
-from jute import Interface, DynamicInterface, implements
+from jute import Opaque, DynamicInterface, implements
 
 
-class BytesLike(metaclass=Interface):
+class BytesLike(Opaque):
 
     def __iter__(self):
         """bytes-like object must be iterable."""

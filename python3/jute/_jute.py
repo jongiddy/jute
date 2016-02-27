@@ -324,13 +324,13 @@ class Interface(type):
         Note that upcasting (casting an interface to a base interface) can be
         done by calling the interface constructor::
 
-            class IFoo(metaclass=jute.Interface):
+            class IFoo(jute.Opaque):
                 \"""An interface.\"""
 
             class IFooBar(IFoo):
                 \"""A sub-interface of IFoo.\"""
 
-            class IBaz(metaclass=jute.Interface):
+            class IBaz(jute.Opaque):
                 \"""A completely different interface.\"""
 
             @implements(IFooBar, IBaz)
@@ -458,7 +458,7 @@ class Attribute:
     Any attribute which is part of an interface, but is not a method,
     should be defined as an :py:class:`.Attribute`::
 
-        class IExample(metaclass=jute.Interface):
+        class IExample(jute.Opaque):
 
             value = jute.Attribute()
 
@@ -482,21 +482,11 @@ class Opaque(metaclass=Interface):
 
     This interface has two uses.
 
-    It can be used as an opaque handle to an object.  A method can
-    return an object wrapped by :py:class:`Opaque` in order to make it
-    inscrutable to callers.
+    It provides the base class for other interfaces to inherit.
 
-    In addition, it provides an alternative to declaring interfaces
-    using the :py:class:`Interface` metaclass.  Simply inherit from
-    :py:class:`Opaque` to create an interface::
-
-        class IExample(jute.Opaque):
-
-            value = jute.Attribute()
-
-            def double(self):
-                \"""Return twice the value.\"""
-
+    In addition, it can be used as an opaque handle to an object.  A
+    method can return an object wrapped by :py:class:`Opaque` in order
+    to make it inscrutable to callers.
     """
 
 
@@ -514,7 +504,7 @@ def underlying_object(interface):
     return obj
 
 
-class DynamicInterface(metaclass=Interface):
+class DynamicInterface(Opaque):
 
     """Interface to dynamically provide other interfaces."""
 

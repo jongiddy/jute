@@ -9,7 +9,7 @@ Register a class that implements the interface
 ----------------------------------------------
 
 To indicate that a class implements an interface, decorate the class with
-``jute.implements``.
+:py:data:`jute.implements`.
 
 .. code-block:: python
 
@@ -21,7 +21,7 @@ To indicate that a class implements an interface, decorate the class with
            sys.stdout.flush()
 
 If it is not possible to decorate the class, use the interface's
-``register_implementation`` method to specify a class as an implementation of the
+:py:data:`register_implementation` method to specify a class as an implementation of the
 interface.
 
 .. code-block:: python
@@ -34,7 +34,7 @@ Dynamically indicate that an instance provides the interface
 
 Sometimes, especially for wrapper classes, it is useful to declare support for
 an interface dynamically.  Dynamic implementations are declared using the
-``jute.DynamicInterface`` interface, which provides a single method ``provides_interface``:
+:py:class:`jute.DynamicInterface` interface, which provides a single method :py:data:`provides_interface`:
 
 .. code-block:: python
 
@@ -54,5 +54,5 @@ an interface dynamically.  Dynamic implementations are declared using the
 
 Note, this object may print "Accessing attribute write" twice.  The first time
 is during interface verification, which will not actually call the function.
-This may be an issue if ``__getattr__`` performs non-trivial work to resolve the
+This may be an issue if :py:data:`__getattr__` performs non-trivial work to resolve the
 attribute.

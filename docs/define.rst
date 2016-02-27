@@ -1,17 +1,22 @@
 Define an Interface
 ===================
 
-Define an interface by setting a metaclass of ``jute.Interface``.
+Define an interface by subclassing :py:class:`jute.Opaque`.
 
 .. code-block:: python
 
     import jute
 
-    class Writable(metaclass=jute.Interface):
+    class Writable(jute.Opaque):
         def write(self, buf):
             """Function to write a string."""
 
-Interfaces can be subclassed:
+Subclassing :py:class:`jute.Opaque` indicates that this class is an interface.
+The interface requires implementations to provide the attributes defined in the class definition (:py:data:`write`) and in the super-class.
+:py:class:`jute.Opaque` is an interface containing no attributes.
+Hence, the :py:class:`Writable` interface only requires the attribute :py:data:`write`.
+
+Interfaces can be subclassed further to add more attributes:
 
 .. code-block:: python
 
@@ -19,12 +24,11 @@ Interfaces can be subclassed:
         def flush(self):
             """Flush any pending output."""
 
-Interface ``BufferedWritable`` requires both ``write`` and ``flush`` attributes to be
-provided.
+Interface :py:class:`BufferedWritable` requires implementations to provide both :py:data:`write` and :py:data:`flush` attributes.
 
 Objects can provide the same syntactical interface, but different semantics.
 These differences can be represented by interface hierarchies with no
-additional syntax:
+additional attributes:
 
 .. code-block:: python
 
@@ -40,13 +44,3 @@ additional syntax:
     else:
         # more expensive operation
         add_line_buffering(out, buf)
-
-Subclassing the empty interface ``jute.Opaque`` provides an alternative way to define an interface.
-
-.. code-block:: python
-
-    import jute
-
-    class Writable(jute.Opaque):
-        def write(self, buf):
-            """Function to write a string."""
