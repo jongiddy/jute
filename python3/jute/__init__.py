@@ -1,6 +1,6 @@
 from ._jute import (
     Attribute, Interface, Opaque, DynamicInterface, implements,
-    underlying_object, InterfaceConformanceError
+    underlying_object, InterfaceConformanceError, InvalidAttributeName
 )
 
 __all__ = [
@@ -11,4 +11,5 @@ __all__ = [
     'implements',
     'underlying_object',
     'InterfaceConformanceError',
+    'InvalidAttributeName',
 ]

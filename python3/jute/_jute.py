@@ -72,6 +72,25 @@ class InterfaceConformanceError(Exception):
         return self.message
 
 
+class InvalidAttributeName(Exception):
+
+    """
+    Interface defines invalid attribute name.
+
+    There are a small number of special attributes that are provided by
+    the interface provider to implement the provider.  These attributes
+    cannot be attributes of an interface.
+    """
+
+    def __init__(self, attribute):
+        self.attribute = attribute
+
+    def __str__(self):
+        return 'Cannot specify {!r} attribute in interface'.format(
+            self.attribute
+        )
+
+
 def missing_attributes(obj, attributes):
     """Return a list of attributes not provided by an object."""
     missing = None
@@ -119,6 +138,16 @@ def handle_delattr(self, name):
 def handle_dir(self):
     """Return the supported attributes of this interface."""
     return _getattribute(self, '_provider_attributes')
+
+
+def handle_getattr(self, name):
+    # If __getattribute__ raises an AttributeError, any __getattr__
+    # method (but not the implicit object.__getattr__) is then
+    # called.  Keep things simple by reserving the __getattr__
+    # method, and raising an AttributeError in it.
+    raise AttributeError(
+        "{!r} interface has no attribute {!r}".format(
+            _getattribute(self, '__class__').__name__, name))
 
 
 def handle_getattribute(self, name):
@@ -202,10 +231,20 @@ class Interface(type):
         '__module__', '__qualname__',
     ))
 
+    _DEFAULT_ATTRIBUTES = {
+        '__init__': handle_init,
+        '__repr__': handle_repr,
+        '__dir__': handle_dir,
+        '__getattr__': handle_getattr,
+        '__getattribute__': handle_getattribute,
+        '__setattr__': handle_setattr,
+        '__delattr__': handle_delattr,
+    }
+
     def __new__(meta, name, bases, dct):
         # Called when a new class is defined.  Use the dictionary of
         # declared attributes to create a mapping to the wrapped object
-        class_attributes = {}
+        class_attributes = meta._DEFAULT_ATTRIBUTES.copy()
         provider_attributes = set()
         for base in bases:
             if isinstance(base, Interface):
@@ -221,6 +260,10 @@ class Interface(type):
                 # A few attributes need to be kept pointing to the
                 # new interface object.
                 class_attributes[key] = value
+            elif key in meta._DEFAULT_ATTRIBUTES:
+                # these attributes are set in the Provider instance to
+                # make it work, so cannot be set for the interface
+                raise InvalidAttributeName(key)
             elif key.startswith('__') and key.endswith('__'):
                 if isinstance(value, types.FunctionType):
                     func = SPECIAL_METHODS.get(key)
@@ -269,14 +312,6 @@ class Interface(type):
             '__setattr__': handle_setattr,
             '__delattr__': handle_delattr,
         })
-        # If __getattribute__ raises an AttributeError, any __getattr__
-        # method (but not the implicit object.__getattr__) is then
-        # called.  Keep things simple by not adding any __getattr__
-        # method.  Adding __getattr__ to the provider definition is OK,
-        # and works due to __getattribute__ implementation calling
-        # getattr() on the wrapped object.
-        if '__getattr__' in class_attributes:
-            del class_attributes['__getattr__']
         interface = super().__new__(meta, name, bases, class_attributes)
         # An object wrapped by (a subclass of) the interface is
         # guaranteed to provide the matching attributes.
