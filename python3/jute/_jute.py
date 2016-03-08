@@ -231,6 +231,8 @@ class Interface(type):
         '__module__', '__qualname__',
     ))
 
+    # Default attributes of all interfaces.  The methods that must be
+    # present to make an instance act as an interface.
     _DEFAULT_ATTRIBUTES = {
         '__init__': handle_init,
         '__repr__': handle_repr,
@@ -302,16 +304,6 @@ class Interface(type):
                 # interface method docstrings to be read.
                 class_attributes[key] = value
         class_attributes['_provider_attributes'] = provider_attributes
-        # Default attributes of all interfaces.  The methods that must be
-        # present to make an instance act as an interface.
-        class_attributes.update({
-            '__init__': handle_init,
-            '__repr__': handle_repr,
-            '__dir__': handle_dir,
-            '__getattribute__': handle_getattribute,
-            '__setattr__': handle_setattr,
-            '__delattr__': handle_delattr,
-        })
         interface = super().__new__(meta, name, bases, class_attributes)
         # An object wrapped by (a subclass of) the interface is
         # guaranteed to provide the matching attributes.
