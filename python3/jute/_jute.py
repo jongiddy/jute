@@ -91,16 +91,26 @@ class InvalidAttributeName(Exception):
         )
 
 
-def missing_attributes(obj, attributes):
+def missing_attributes(iface, obj, attributes):
     """Return a list of attributes not provided by an object."""
     missing = None
     for name in attributes:
         try:
-            getattr(obj, name)
+            value = getattr(obj, name)
         except AttributeError:
             if missing is None:
                 missing = []
             missing.append(name)
+        else:
+            for validator in attributes[name]:
+                if isinstance(validator, Attribute):
+                    if not isinstance(value, validator.type):
+                        raise TypeError(
+                            '{}.{} requires type {}, got type {}'.format(
+                                iface, name, validator.type, type(value)
+                            )
+                        )
+
     return missing
 
 
@@ -188,7 +198,16 @@ def handle_setattr(self, name, value):
     Check that the attribute is specified by the interface, and then
     set it on the wrapped object.
     """
-    if name in _getattribute(self, '_provider_attributes'):
+    provider_attributes = _getattribute(self, '_provider_attributes')
+    if name in provider_attributes:
+        for validator in provider_attributes[name]:
+            if isinstance(validator, Attribute):
+                if not isinstance(value, validator.type):
+                    raise TypeError(
+                        '{}.{} requires type {}, got type {}'.format(
+                            type(self), name, validator.type, type(value)
+                        )
+                    )
         return setattr(_getattribute(self, 'provider'), name, value)
     else:
         raise AttributeError(
@@ -247,14 +266,18 @@ class Interface(type):
         # Called when a new class is defined.  Use the dictionary of
         # declared attributes to create a mapping to the wrapped object
         class_attributes = meta._DEFAULT_ATTRIBUTES.copy()
-        provider_attributes = set()
+        provider_attributes = dict()
         for base in bases:
             if isinstance(base, Interface):
                 # base class is a super-interface of this interface
                 # This interface provides all attributes from the base
                 # interface
-                provider_attributes |= base._provider_attributes
-
+                for key in base._provider_attributes:
+                    v = provider_attributes.get(key)
+                    if v is None:
+                        v = []
+                        provider_attributes[key] = v
+                    v.extend(base._provider_attributes[key])
         for key, value in dct.items():
             # Almost all attributes on the interface are mapped to
             # return the equivalent attributes on the wrapped object.
@@ -285,7 +308,10 @@ class Interface(type):
                     # that `__getattribute__` does not reject the name for
                     # the cases where Python does go through the usual
                     # process, e.g. a literal `x.__iter__`
-                    provider_attributes.add(key)
+                    v = provider_attributes.get(key)
+                    if v is None:
+                        v = provider_attributes[key] = []
+                    v.append(func)
                 else:
                     # Add attribute to interface class, but not to provider
                     # instances.  This is appropriate for the interface
@@ -299,7 +325,10 @@ class Interface(type):
                 # Any other values (e.g. docstrings) are not accessible through
                 # provider instances.
                 if isinstance(value, (Attribute, types.FunctionType)):
-                    provider_attributes.add(key)
+                    v = provider_attributes.get(key)
+                    if v is None:
+                        v = provider_attributes[key] = []
+                    v.append(value)
                 # All values are added as class attributes, to allow
                 # interface method docstrings to be read.
                 class_attributes[key] = value
@@ -382,7 +411,7 @@ class Interface(type):
             # the interface, so it must support all operations
             if validate:
                 missing = missing_attributes(
-                    obj, interface._provider_attributes)
+                    interface, obj, interface._provider_attributes)
                 if missing:
                     raise InterfaceConformanceError(mkmessage(obj, missing))
         elif (
@@ -399,9 +428,10 @@ class Interface(type):
             # not set and code is optimised, accept claims without validating.
             if validate is None and __debug__ or validate:
                 missing = missing_attributes(
-                    obj, interface._provider_attributes)
+                    interface, obj, interface._provider_attributes)
                 if missing:
                     raise InterfaceConformanceError(mkmessage(obj, missing))
+
         else:
             raise TypeError(
                 'Object {} does not provide interface {}'. format(
@@ -500,6 +530,10 @@ class Attribute:
             def double(self):
                 return 2 * self.value
     """
+
+    def __init__(self, description=None, *, type=object):
+        self.description = description
+        self.type = type
 
 
 class Opaque(metaclass=Interface):

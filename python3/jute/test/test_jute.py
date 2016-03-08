@@ -10,7 +10,7 @@ class ITest(Opaque):
 
     """A docstring"""
 
-    a = Attribute()
+    a = Attribute(type=int)
 
     def b():
         pass
@@ -22,6 +22,20 @@ class TestProvider:
     """Another docstring"""
 
     a = 5
+
+    def b():
+        return 6
+
+    def c():
+        return 7
+
+
+@implements(ITest)
+class TestProviderWrongAttributeType:
+
+    """Another docstring"""
+
+    a = "string"
 
     def b():
         return 6
@@ -61,6 +75,19 @@ class AttributeTests(unittest.TestCase):
         i = ITest(t)
         with self.assertRaises(AttributeError):
             i.c
+
+    def test_cast_wrong_type(self):
+        """Provider checks Attribute type when casting."""
+        t = TestProviderWrongAttributeType()
+        with self.assertRaises(TypeError):
+            ITest(t)
+
+    def test_set_wrong_type(self):
+        """Provider checks new value type when setting."""
+        t = TestProvider()
+        i = ITest(t)
+        with self.assertRaises(TypeError):
+            i.a = "string"
 
 
 # Simple interface hierarchy for testing
