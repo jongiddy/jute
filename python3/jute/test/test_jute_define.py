@@ -7,13 +7,24 @@ class MyString(str):
     """A subclass of str."""
 
 
+class AnotherClass:
+
+    """A different class."""
+
+
 class IAttribute(Opaque):
 
     x = Attribute(type=str)
 
 
 class IAttributeSubclass(IAttribute):
+
     x = Attribute(type=MyString)
+
+
+class IAttributeSimilar(Opaque):
+
+    x = Attribute(type=AnotherClass)
 
 
 class WhenInterfaceHasAttribute(unittest.TestCase):
@@ -80,7 +91,7 @@ class WhenInterfaceHasAttribute(unittest.TestCase):
 
 class WhenSubinterfaceOverridesAttribute(unittest.TestCase):
 
-    def test_subclass_can_override_attribute_with_subclass(self):
+    def test_new_attribute_can_be_subclass(self):
         """
         A sub-interface can override the type of an attribute, but only
         to a sub-class of the initial type.
@@ -92,7 +103,7 @@ class WhenSubinterfaceOverridesAttribute(unittest.TestCase):
         IAttributeSubclass(impl)
 
     @unittest.skip("Need to check types")
-    def test_subclass_cannot_override_attribute_with_another_type(self):
+    def test_new_attribute_cannot_be_a_different_type(self):
         """
         A sub-interface can override the type of an attribute, but only
         to a sub-class of the initial type.
@@ -101,13 +112,100 @@ class WhenSubinterfaceOverridesAttribute(unittest.TestCase):
             class IAttributeSubclass2(IAttribute):
                 x = Attribute(type=int)
 
-    def test_overridden_attribute_does_not_accept_original_type(self):
+    def test_subinterface_does_not_accept_original_type(self):
         @implements(IAttributeSubclass)
         class Implementation:
             x = "kan"
         impl = Implementation()
         with self.assertRaises(TypeError):
             IAttributeSubclass(impl)
+
+
+# field must contain subclass of both supertypes
+# - test good + each bad
+# if subinterface overrides attribute, it must subtype both supertypes
+# - test good + each bad
+class WhenSubinterfaceHasCommonSuperattributes(unittest.TestCase):
+
+    """
+    When an implementation implements two interfaces that define the
+    same attribute, the attribute must meet satisfy both definitions.
+    """
+
+    def test_implementation_must_support_both_interfaces(self):
+        class AString(MyString, AnotherClass):
+            pass
+
+        class SubInterface(IAttributeSubclass, IAttributeSimilar):
+            pass
+
+        @implements(IAttributeSubclass, IAttributeSimilar)
+        class Implementation:
+            x = AString("kan")
+
+        impl = Implementation()
+        # An implementation can be cast to the interfaces
+        IAttributeSubclass(impl)
+        IAttributeSimilar(impl)
+        # but not to a sub-interface it doesn't implement
+        with self.assertRaises(TypeError):
+            SubInterface(Implementation())
+
+    def test_implementation_must_support_subinterface(self):
+        class AString(MyString, AnotherClass):
+            pass
+
+        class SubInterface(IAttributeSubclass, IAttributeSimilar):
+            pass
+
+        @implements(SubInterface)
+        class Implementation:
+            x = AString("kan")
+
+        impl = Implementation()
+        # An implementation can be cast to the interfaces
+        IAttributeSubclass(impl)
+        IAttributeSimilar(impl)
+        SubInterface(Implementation())
+
+    def test_subinterface_must_support_both(self):
+        class AString:
+            pass
+
+        # TODO - this should fail during this class definition
+        class SubInterface(IAttributeSubclass, IAttributeSimilar):
+            x = Attribute(type=AString)  # fails - not subclass of both
+
+        @implements(SubInterface)
+        class Implementation:
+            x = AString()
+
+        with self.assertRaises(TypeError):
+            SubInterface(Implementation())
+
+    def test_implementation_fails_for_one(self):
+        class AString(MyString, AnotherClass):
+            pass
+
+        # TODO - this should fail during this class definition
+        @implements(IAttributeSubclass, IAttributeSimilar)
+        class Implementation:
+            x = MyString("kan")
+
+        with self.assertRaises(TypeError):
+            IAttributeSimilar(Implementation())
+
+    def test_implementation_fails_for_another(self):
+        class AString(MyString, AnotherClass):
+            pass
+
+        # TODO - this should fail during this class definition
+        @implements(IAttributeSubclass, IAttributeSimilar)
+        class Implementation:
+            x = AnotherClass()
+
+        with self.assertRaises(TypeError):
+            IAttributeSubclass(Implementation())
 
 
 class IMethod(Opaque):
