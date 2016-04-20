@@ -2,29 +2,29 @@ import unittest
 from jute import Attribute, Opaque, implements, InterfaceConformanceError
 
 
-class MyString(str):
+class TypeA(str):
 
     """A subclass of str."""
 
 
-class AnotherClass:
+class TypeB:
 
     """A different class."""
 
 
-class IAttribute(Opaque):
+class IAttributeString(Opaque):
 
     x = Attribute(type=str)
 
 
-class IAttributeSubclass(IAttribute):
+class IAttributeTypeA(IAttributeString):
 
-    x = Attribute(type=MyString)
+    x = Attribute(type=TypeA)
 
 
-class IAttributeSimilar(Opaque):
+class IAttributeTypeB(Opaque):
 
-    x = Attribute(type=AnotherClass)
+    x = Attribute(type=TypeB)
 
 
 class WhenInterfaceHasAttribute(unittest.TestCase):
@@ -34,23 +34,23 @@ class WhenInterfaceHasAttribute(unittest.TestCase):
         If an Attribute is defined in an interface, then an implementation
         must provide the attribute.
         """
-        @implements(IAttribute)
+        @implements(IAttributeString)
         class Implementation:
             pass
         impl = Implementation()
         with self.assertRaises(InterfaceConformanceError):
-            IAttribute(impl)
+            IAttributeString(impl)
 
     def test_attribute_cannot_be_deleted_through_interface(self):
         """
         It is not possible to delete an attribute through an interface
         (because the interface object would then not provide the interface).
         """
-        @implements(IAttribute)
+        @implements(IAttributeString)
         class Implementation:
             x = "kan"
         impl = Implementation()
-        face = IAttribute(impl)
+        face = IAttributeString(impl)
         with self.assertRaises(InterfaceConformanceError):
             del face.x
 
@@ -58,33 +58,33 @@ class WhenInterfaceHasAttribute(unittest.TestCase):
         """
         An attribute can be set to any value of the Attribute type.
         """
-        @implements(IAttribute)
+        @implements(IAttributeString)
         class Implementation:
             x = "kan"
         impl = Implementation()
-        face = IAttribute(impl)
+        face = IAttributeString(impl)
         face.x = "ga"
 
     def test_attribute_can_be_set_to_subtype(self):
         """
         An attribute can be set to a subclass of the Attribute type.
         """
-        @implements(IAttribute)
+        @implements(IAttributeString)
         class Implementation:
             x = "kan"
         impl = Implementation()
-        face = IAttribute(impl)
-        face.x = MyString("ga")
+        face = IAttributeString(impl)
+        face.x = TypeA("ga")
 
     def test_attribute_cannot_be_set_to_different_type(self):
         """
         An attribute cannot be set to another type.
         """
-        @implements(IAttribute)
+        @implements(IAttributeString)
         class Implementation:
             x = "kan"
         impl = Implementation()
-        face = IAttribute(impl)
+        face = IAttributeString(impl)
         with self.assertRaises(TypeError):
             face.x = 3
 
@@ -96,11 +96,11 @@ class WhenSubinterfaceOverridesAttribute(unittest.TestCase):
         A sub-interface can override the type of an attribute, but only
         to a sub-class of the initial type.
         """
-        @implements(IAttributeSubclass)
+        @implements(IAttributeTypeA)
         class Implementation:
-            x = MyString("kan")
+            x = TypeA("kan")
         impl = Implementation()
-        IAttributeSubclass(impl)
+        IAttributeTypeA(impl)
 
     def test_new_attribute_cannot_be_a_different_type(self):
         """
@@ -108,16 +108,16 @@ class WhenSubinterfaceOverridesAttribute(unittest.TestCase):
         to a sub-class of the initial type.
         """
         with self.assertRaises(InterfaceConformanceError):
-            class IAttributeTypeA2(IAttribute):
+            class IAttributeWrongType(IAttributeString):
                 x = Attribute(type=int)
 
     def test_subinterface_does_not_accept_original_type(self):
-        @implements(IAttributeSubclass)
+        @implements(IAttributeTypeA)
         class Implementation:
             x = "kan"
         impl = Implementation()
         with self.assertRaises(TypeError):
-            IAttributeSubclass(impl)
+            IAttributeTypeA(impl)
 
 
 # field must contain subclass of both supertypes
@@ -132,29 +132,29 @@ class WhenSubinterfaceHasCommonSuperattributes(unittest.TestCase):
     """
 
     def test_implementation_must_support_both_interfaces(self):
-        class AString(MyString, AnotherClass):
+        class AString(TypeA, TypeB):
             pass
 
-        class SubInterface(IAttributeSubclass, IAttributeSimilar):
+        class SubInterface(IAttributeTypeA, IAttributeTypeB):
             pass
 
-        @implements(IAttributeSubclass, IAttributeSimilar)
+        @implements(IAttributeTypeA, IAttributeTypeB)
         class Implementation:
             x = AString("kan")
 
         impl = Implementation()
         # An implementation can be cast to the interfaces
-        IAttributeSubclass(impl)
-        IAttributeSimilar(impl)
+        IAttributeTypeA(impl)
+        IAttributeTypeB(impl)
         # but not to a sub-interface it doesn't implement
         with self.assertRaises(TypeError):
             SubInterface(Implementation())
 
     def test_implementation_must_support_subinterface(self):
-        class AString(MyString, AnotherClass):
+        class AString(TypeA, TypeB):
             pass
 
-        class SubInterface(IAttributeSubclass, IAttributeSimilar):
+        class SubInterface(IAttributeTypeA, IAttributeTypeB):
             pass
 
         @implements(SubInterface)
@@ -163,8 +163,8 @@ class WhenSubinterfaceHasCommonSuperattributes(unittest.TestCase):
 
         impl = Implementation()
         # An implementation can be cast to the interfaces
-        IAttributeSubclass(impl)
-        IAttributeSimilar(impl)
+        IAttributeTypeA(impl)
+        IAttributeTypeB(impl)
         SubInterface(Implementation())
 
     def test_subinterface_must_support_both(self):
@@ -172,7 +172,7 @@ class WhenSubinterfaceHasCommonSuperattributes(unittest.TestCase):
             pass
 
         with self.assertRaises(InterfaceConformanceError):
-            class SubInterface(IAttributeSubclass, IAttributeSimilar):
+            class SubInterface(IAttributeTypeA, IAttributeTypeB):
                 x = Attribute(type=AString)  # fails - not subclass of both
 
     def test_subinterface_fails_for_one(self):
@@ -180,40 +180,40 @@ class WhenSubinterfaceHasCommonSuperattributes(unittest.TestCase):
             pass
 
         with self.assertRaises(InterfaceConformanceError):
-            class SubInterface(IAttributeSubclass, IAttributeSimilar):
-                x = Attribute(type=MyString)  # not subclass of AnotherClass
+            class SubInterface(IAttributeTypeA, IAttributeTypeB):
+                x = Attribute(type=TypeA)  # not subclass of TypeB
 
     def test_subinterface_fails_for_another(self):
         class AString:
             pass
 
         with self.assertRaises(InterfaceConformanceError):
-            class SubInterface(IAttributeSubclass, IAttributeSimilar):
-                x = Attribute(type=AnotherClass)  # not subclass of MyString
+            class SubInterface(IAttributeTypeA, IAttributeTypeB):
+                x = Attribute(type=TypeB)  # not subclass of TypeA
 
     def test_implementation_fails_for_one(self):
-        class AString(MyString, AnotherClass):
+        class AString(TypeA, TypeB):
             pass
 
         # TODO - this should fail during this class definition
-        @implements(IAttributeSubclass, IAttributeSimilar)
+        @implements(IAttributeTypeA, IAttributeTypeB)
         class Implementation:
-            x = MyString("kan")
+            x = TypeA("kan")
 
         with self.assertRaises(TypeError):
-            IAttributeSimilar(Implementation())
+            IAttributeTypeB(Implementation())
 
     def test_implementation_fails_for_another(self):
-        class AString(MyString, AnotherClass):
+        class AString(TypeA, TypeB):
             pass
 
         # TODO - this should fail during this class definition
-        @implements(IAttributeSubclass, IAttributeSimilar)
+        @implements(IAttributeTypeA, IAttributeTypeB)
         class Implementation:
-            x = AnotherClass()
+            x = TypeB()
 
         with self.assertRaises(TypeError):
-            IAttributeSubclass(Implementation())
+            IAttributeTypeA(Implementation())
 
 
 class IMethod(Opaque):
