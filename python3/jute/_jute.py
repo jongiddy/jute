@@ -327,8 +327,21 @@ class Interface(type):
                 if isinstance(value, (Attribute, types.FunctionType)):
                     v = provider_attributes.get(key)
                     if v is None:
-                        v = provider_attributes[key] = []
-                    v.append(value)
+                        v = provider_attributes[key] = [value]
+                    else:
+                        if isinstance(value, Attribute):
+                            # check that attribute subclasses previous types
+                            for attr in v:
+                                if not issubclass(value.type, attr.type):
+                                    raise InterfaceConformanceError(
+                                        'Attribute {!r} in interface {!r} must'
+                                        ' subclass {}'.format(
+                                            key, name, attr.type
+                                        )
+                                    )
+                            v = provider_attributes[key] = [value]
+                        else:
+                            v.append(value)
                 # All values are added as class attributes, to allow
                 # interface method docstrings to be read.
                 class_attributes[key] = value

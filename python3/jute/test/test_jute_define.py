@@ -102,14 +102,13 @@ class WhenSubinterfaceOverridesAttribute(unittest.TestCase):
         impl = Implementation()
         IAttributeSubclass(impl)
 
-    @unittest.skip("Need to check types")
     def test_new_attribute_cannot_be_a_different_type(self):
         """
         A sub-interface can override the type of an attribute, but only
         to a sub-class of the initial type.
         """
-        with self.assertRaises(Exception):
-            class IAttributeSubclass2(IAttribute):
+        with self.assertRaises(InterfaceConformanceError):
+            class IAttributeTypeA2(IAttribute):
                 x = Attribute(type=int)
 
     def test_subinterface_does_not_accept_original_type(self):
@@ -172,16 +171,25 @@ class WhenSubinterfaceHasCommonSuperattributes(unittest.TestCase):
         class AString:
             pass
 
-        # TODO - this should fail during this class definition
-        class SubInterface(IAttributeSubclass, IAttributeSimilar):
-            x = Attribute(type=AString)  # fails - not subclass of both
+        with self.assertRaises(InterfaceConformanceError):
+            class SubInterface(IAttributeSubclass, IAttributeSimilar):
+                x = Attribute(type=AString)  # fails - not subclass of both
 
-        @implements(SubInterface)
-        class Implementation:
-            x = AString()
+    def test_subinterface_fails_for_one(self):
+        class AString:
+            pass
 
-        with self.assertRaises(TypeError):
-            SubInterface(Implementation())
+        with self.assertRaises(InterfaceConformanceError):
+            class SubInterface(IAttributeSubclass, IAttributeSimilar):
+                x = Attribute(type=MyString)  # not subclass of AnotherClass
+
+    def test_subinterface_fails_for_another(self):
+        class AString:
+            pass
+
+        with self.assertRaises(InterfaceConformanceError):
+            class SubInterface(IAttributeSubclass, IAttributeSimilar):
+                x = Attribute(type=AnotherClass)  # not subclass of MyString
 
     def test_implementation_fails_for_one(self):
         class AString(MyString, AnotherClass):
