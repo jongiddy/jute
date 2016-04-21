@@ -195,7 +195,8 @@ class WhenSubinterfaceHasCommonSuperattributes(unittest.TestCase):
         class AString(TypeA, TypeB):
             pass
 
-        # TODO - this should fail during this class definition
+        # We don't care what value the field has here, or even if it is
+        # defined.  We only care when it is cast to the interface.
         @implements(IAttributeTypeA, IAttributeTypeB)
         class Implementation:
             x = TypeA("kan")
@@ -207,7 +208,8 @@ class WhenSubinterfaceHasCommonSuperattributes(unittest.TestCase):
         class AString(TypeA, TypeB):
             pass
 
-        # TODO - this should fail during this class definition
+        # We don't care what value the field has here, or even if it is
+        # defined.  We only care when it is cast to the interface.
         @implements(IAttributeTypeA, IAttributeTypeB)
         class Implementation:
             x = TypeB()
