@@ -386,7 +386,7 @@ class Interface(type):
         return interface.provided_by(instance)
 
     def cast(interface, source):
-        """
+        '''
         Attempt to cast one interface to another.
 
         This method allows the caller to access another interface supported by
@@ -397,23 +397,23 @@ class Interface(type):
         done by calling the interface constructor::
 
             class IFoo(jute.Opaque):
-                \"""An interface.\"""
+                """An interface."""
 
             class IFooBar(IFoo):
-                \"""A sub-interface of IFoo.\"""
+                """A sub-interface of IFoo."""
 
             class IBaz(jute.Opaque):
-                \"""A completely different interface.\"""
+                """A completely different interface."""
 
             @implements(IFooBar, IBaz)
             class FooBarBaz:
-                \"""A class that implements all the above interfaces.\"""
+                """A class that implements all the above interfaces."""
 
             fb1 = IFooBar(FooBarBaz())
             foo = IFoo(fb1)      # upcast does not need cast
             fb2 = IFooBar.cast(foo)  # downcast needs a cast
             baz = IBaz.cast(fb2)     # sidecast needs a cast
-        """
+        '''
         return interface(underlying_object(source))
 
     def raise_if_not_provided_by(interface, obj, validate=None):
@@ -434,7 +434,7 @@ class Interface(type):
             issubclass(obj_type, interface._unverified) or (
                 issubclass(obj_type, DynamicInterface._verified) or
                 issubclass(obj_type, DynamicInterface._unverified)
-                ) and obj.provides_interface(interface)
+            ) and obj.provides_interface(interface)
         ):
             # The object claims to provide the interface, either by
             # implementing the interface, or by implementing the
@@ -505,7 +505,7 @@ class Interface(type):
                 issubclass(obj_type, DynamicInterface._verified) or
                 issubclass(obj_type, DynamicInterface._unverified)) and
                 obj.provides_interface(interface)
-            )
+        )
 
     def supported_by(interface, obj):
         """
@@ -525,7 +525,7 @@ class Interface(type):
 
 class Attribute:
 
-    """
+    '''
     Specify a non-function attribute in an interface.
 
     Any attribute which is part of an interface, but is not a method,
@@ -536,7 +536,7 @@ class Attribute:
             value = jute.Attribute()
 
             def double(self):
-                \"""Return twice the value.\"""
+                """Return twice the value."""
 
         @implements(IExample)
         class Example:
@@ -545,7 +545,7 @@ class Attribute:
 
             def double(self):
                 return 2 * self.value
-    """
+    '''
 
     def __init__(self, description=None, *, type=object):
         self.description = description
