@@ -32,8 +32,15 @@ sys.path.insert(0, os.path.abspath('../python3'))
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinxcontrib.spelling',
 ]
+
+try:
+  import sphinxcontrib.spelling
+except ImportError:
+  # ReadTheDocs fails due to not installing docs
+  pass
+else:
+  extensions.append('sphinxcontrib.spelling')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
