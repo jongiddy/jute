@@ -528,6 +528,9 @@ class Attribute:
     '''
     Specify a non-function attribute in an interface.
 
+    :ivar description: The doc-string for the attribute.
+    :ivar type: The type of a valid value for the attribute.
+
     Any attribute which is part of an interface, but is not a method,
     should be defined as an :py:class:`.Attribute`::
 

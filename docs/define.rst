@@ -44,3 +44,11 @@ additional attributes:
     else:
         # more expensive operation
         add_line_buffering(out, buf)
+
+Interfaces can define non-method object using the :py:class:`jute.Attribute` class:
+
+.. code-block:: python
+
+    class BufferedWritableFile(BufferedWritable):
+
+        fd = jute.Attribute("The file descriptor of the file to be written", type=int)
