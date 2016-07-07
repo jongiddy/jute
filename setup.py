@@ -2,7 +2,7 @@ from distutils.core import setup
 import sys
 
 GITHUB_URL = 'https://github.com/jongiddy/jute'
-VERSION = '0.2.0'
+VERSION = '0.2.1'
 
 
 if sys.version_info[0] < 3:
