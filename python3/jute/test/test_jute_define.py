@@ -224,7 +224,6 @@ class IMethod(Opaque):
         """A method"""
 
 
-@unittest.skip("Need to add code to enforce this")
 class WhenInterfaceHasMethod(unittest.TestCase):
 
     def test_implementer_must_define_method(self):
@@ -244,8 +243,9 @@ class WhenInterfaceHasMethod(unittest.TestCase):
         impl = Implementation()
         face = IMethod(impl)
         with self.assertRaises(InterfaceConformanceError):
-            del face.x
+            del face.kan
 
+    @unittest.skip("Need to add code to enforce this")
     def test_method_must_match_signature(self):
         @implements(IMethod)
         class Implementation:
@@ -256,6 +256,7 @@ class WhenInterfaceHasMethod(unittest.TestCase):
         with self.assertRaises(TypeError):
             IMethod(impl)
 
+    @unittest.skip("Need to add code to enforce this")
     def test_method_cannot_be_set_to_different_type(self):
         @implements(IMethod)
         class Implementation:
