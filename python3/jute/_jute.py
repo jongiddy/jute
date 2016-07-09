@@ -514,8 +514,8 @@ class Interface(type):
         Although it allows the caller to see if the underlying object supports
         an interface, it does not provide access to the interface, unless the
         interfaces contain attributes in common.  This makes it most useful for
-        performing feature checks for marker interfaces (interfaces that have
-        the same syntax, but different semantics to the supplied interface).
+        performing feature checks using marker interfaces (interfaces that have
+        the same syntax, but additional semantics).
 
         :return bool: :py:obj:`True` if the underlying object claims to provide
             the interface, or :py:obj:`False` otherwise.
