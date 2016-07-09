@@ -52,7 +52,7 @@ an interface dynamically.  Dynamic implementations are declared using the
            # Check wrapped object's support for interface.
            return interface.provided_by(self.wrapped)
 
-Note, this object may print "Accessing attribute write" twice.  The first time
-is during interface verification, which will not actually call the function.
+Note, this object may print "Accessing attribute write" more than expected.
+Interface verification uses :py:data:`getattr` to verify implementation of the interface.
 This may be an issue if :py:data:`__getattr__` performs non-trivial work to resolve the
 attribute.
