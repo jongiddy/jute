@@ -26,7 +26,7 @@ setup(
     url=GITHUB_URL,
     download_url='{}/tarball/v{}'.format(GITHUB_URL, VERSION),
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Natural Language :: English",
         "License :: OSI Approved :: MIT License",
