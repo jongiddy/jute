@@ -276,3 +276,166 @@ class WhenInterfaceHasMethod(unittest.TestCase):
                 return ga, roo
         impl = Implementation()
         IMethod(impl)
+
+
+class SubinterfaceOveridesMethodTest(unittest.TestCase):
+
+    @unittest.skip("Need to add code to enforce this")
+    def test_can_repeat_positional_arguments(self):
+        class A(Opaque):
+
+            def kan(self, ga, roo):
+                """Method"""
+        class B(A):
+
+            def kan(self, ga, roo):
+                """Method"""
+        @implements(B)
+        class C:
+
+            def kan(self, ga, roo):
+                """Valid implementation"""
+        with self.assertRaises(TypeError):
+            @implements(B)
+            class D:
+
+                def kan(self, ga, roo, foo):
+                    """Invalid implementation"""
+
+    @unittest.skip("Need to add code to enforce this")
+    def test_cannot_have_more_positional_arguments(self):
+        """
+        Adding positional arguments makes signatures incompatible.
+        """
+        class A(Opaque):
+
+            def kan(self, ga):
+                """Method"""
+        with self.assertRaises(TypeError):
+            class B(A):
+
+                def kan(self, ga, roo):
+                    """Method"""
+
+    @unittest.skip("Need to add code to enforce this")
+    def test_cannot_have_fewer_positional_argumentes(self):
+        """
+        Removing positional arguments makes signatures incompatible.
+        """
+        class A(Opaque):
+
+            def kan(self, ga, roo):
+                """Method"""
+        with self.assertRaises(TypeError):
+            class B(A):
+
+                def kan(self, ga):
+                    """Method"""
+
+    @unittest.skip("Need to add code to enforce this")
+    def test_can_map_positional_arguments_to_varargs(self):
+        class A(Opaque):
+
+            def kan(self, ga, roo):
+                """Method"""
+        class B(A):
+
+            def kan(self, ga, *args):
+                """Method"""
+
+        @implements(B)
+        class C:
+
+            def kan(self, ga, roo):
+                """Valid implementation"""
+
+        with self.assertRaises(TypeError):
+            @implements(B)
+            class D:
+
+                def kan(self, ga):
+                    """Invalid implementation"""
+
+    @unittest.skip("Need to add code to enforce this")
+    def test_can_constrain_varargs_to_positional_arguments(self):
+        class A(Opaque):
+
+            def kan(self, ga, *args):
+                """Method"""
+        class B(A):
+
+            def kan(self, ga, roo):
+                """Method"""
+
+        @implements(B)
+        class C:
+
+            def kan(self, ga, roo):
+                """Valid implementation"""
+
+        with self.assertRaises(TypeError):
+            @implements(B)
+            class D:
+
+                def kan(self, ga):
+                    """Invalid implementation"""
+
+    @unittest.skip("Need to add code to enforce this")
+    def test_can_constrain_varargs_to_more_positional_arguments(self):
+        class A(Opaque):
+
+            def kan(self, *args):
+                """Method"""
+        class B(A):
+
+            def kan(self, ga, *args):
+                """Method"""
+
+        @implements(B)
+        class C:
+
+            def kan(self, ga, roo):
+                """Valid implementation"""
+
+        @implements(B)
+        class D:
+
+            def kan(self, ga):
+                """Valid implementation"""
+
+        with self.assertRaises(TypeError):
+            @implements(B)
+            class E:
+
+                def kan(self):
+                    """Invalid implementation"""
+
+    @unittest.skip("Need to add code to enforce this")
+    def test_can_constrain_varargs_to_fewer_positional_arguments(self):
+        class A(Opaque):
+
+            def kan(self, ga, *args):
+                """Method"""
+        class B(A):
+
+            def kan(self, *args):
+                """Method"""
+
+        @implements(B)
+        class C:
+
+            def kan(self, ga, roo):
+                """Valid implementation"""
+
+        @implements(B)
+        class D:
+
+            def kan(self, ga):
+                """Valid implementation"""
+
+        with self.assertRaises(TypeError):
+            @implements(B)
+            class E:
+
+                def kan(self):
+                    """Invalid implementation"""
