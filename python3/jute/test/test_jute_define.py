@@ -1,5 +1,6 @@
 import unittest
 from jute import Attribute, Opaque, implements, InterfaceConformanceError
+from jute._jute import validate_function
 
 
 class TypeA(str):
@@ -278,164 +279,55 @@ class WhenInterfaceHasMethod(unittest.TestCase):
         IMethod(impl)
 
 
-class SubinterfaceOveridesMethodTest(unittest.TestCase):
+class ValidateFunctionTests(unittest.TestCase):
 
-    @unittest.skip("Need to add code to enforce this")
-    def test_can_repeat_positional_arguments(self):
-        class A(Opaque):
+    def test_empty_validator(self):
+        def func(foo):
+            return foo
 
-            def kan(self, ga, roo):
-                """Method"""
-        class B(A):
+        def validate(kan):
+            """Nothing here"""
+        self.assertEqual(validate_function([validate], func, (3,), {}), 3)
 
-            def kan(self, ga, roo):
-                """Method"""
-        @implements(B)
-        class C:
+    def test_non_acting_validator(self):
+        def func(foo):
+            return foo
 
-            def kan(self, ga, roo):
-                """Valid implementation"""
-        with self.assertRaises(TypeError):
-            @implements(B)
-            class D:
+        def validate(kan):
+            def handle_result(result):
+                return result
+            return handle_result
+        self.assertEqual(validate_function([validate], func, (3,), {}), 3)
 
-                def kan(self, ga, roo, foo):
-                    """Invalid implementation"""
+    def test_transform_result_validator(self):
+        def func(foo):
+            return foo
 
-    @unittest.skip("Need to add code to enforce this")
-    def test_cannot_have_more_positional_arguments(self):
-        """
-        Adding positional arguments makes signatures incompatible.
-        """
-        class A(Opaque):
+        def validate(kan):
+            def handle_result(result):
+                return result * 2
+            return handle_result
+        self.assertEqual(validate_function([validate], func, (3,), {}), 6)
 
-            def kan(self, ga):
-                """Method"""
-        with self.assertRaises(TypeError):
-            class B(A):
+    def test_failing_args_validator(self):
+        def func(foo):
+            return foo
 
-                def kan(self, ga, roo):
-                    """Method"""
+        def validate(kan):
+            assert isinstance(kan, str)
 
-    @unittest.skip("Need to add code to enforce this")
-    def test_cannot_have_fewer_positional_argumentes(self):
-        """
-        Removing positional arguments makes signatures incompatible.
-        """
-        class A(Opaque):
+        with self.assertRaises(AssertionError):
+            validate_function([validate], func, (3,), {})
 
-            def kan(self, ga, roo):
-                """Method"""
-        with self.assertRaises(TypeError):
-            class B(A):
+    def test_failing_result_validator(self):
+        def func(foo):
+            return foo
 
-                def kan(self, ga):
-                    """Method"""
+        def validate(kan):
+            def handle_result(result):
+                assert isinstance(result, str)
+                return result
+            return handle_result
 
-    @unittest.skip("Need to add code to enforce this")
-    def test_can_map_positional_arguments_to_varargs(self):
-        class A(Opaque):
-
-            def kan(self, ga, roo):
-                """Method"""
-        class B(A):
-
-            def kan(self, ga, *args):
-                """Method"""
-
-        @implements(B)
-        class C:
-
-            def kan(self, ga, roo):
-                """Valid implementation"""
-
-        with self.assertRaises(TypeError):
-            @implements(B)
-            class D:
-
-                def kan(self, ga):
-                    """Invalid implementation"""
-
-    @unittest.skip("Need to add code to enforce this")
-    def test_can_constrain_varargs_to_positional_arguments(self):
-        class A(Opaque):
-
-            def kan(self, ga, *args):
-                """Method"""
-        class B(A):
-
-            def kan(self, ga, roo):
-                """Method"""
-
-        @implements(B)
-        class C:
-
-            def kan(self, ga, roo):
-                """Valid implementation"""
-
-        with self.assertRaises(TypeError):
-            @implements(B)
-            class D:
-
-                def kan(self, ga):
-                    """Invalid implementation"""
-
-    @unittest.skip("Need to add code to enforce this")
-    def test_can_constrain_varargs_to_more_positional_arguments(self):
-        class A(Opaque):
-
-            def kan(self, *args):
-                """Method"""
-        class B(A):
-
-            def kan(self, ga, *args):
-                """Method"""
-
-        @implements(B)
-        class C:
-
-            def kan(self, ga, roo):
-                """Valid implementation"""
-
-        @implements(B)
-        class D:
-
-            def kan(self, ga):
-                """Valid implementation"""
-
-        with self.assertRaises(TypeError):
-            @implements(B)
-            class E:
-
-                def kan(self):
-                    """Invalid implementation"""
-
-    @unittest.skip("Need to add code to enforce this")
-    def test_can_constrain_varargs_to_fewer_positional_arguments(self):
-        class A(Opaque):
-
-            def kan(self, ga, *args):
-                """Method"""
-        class B(A):
-
-            def kan(self, *args):
-                """Method"""
-
-        @implements(B)
-        class C:
-
-            def kan(self, ga, roo):
-                """Valid implementation"""
-
-        @implements(B)
-        class D:
-
-            def kan(self, ga):
-                """Valid implementation"""
-
-        with self.assertRaises(TypeError):
-            @implements(B)
-            class E:
-
-                def kan(self):
-                    """Invalid implementation"""
+        with self.assertRaises(AssertionError):
+            validate_function([validate], func, (3,), {})

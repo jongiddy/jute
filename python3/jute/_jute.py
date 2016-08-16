@@ -229,6 +229,21 @@ SPECIAL_METHODS = {
 }
 
 
+def validate_function(validators, func, args, kwargs):
+    """
+    Validate a function call using a series of validators
+    """
+    result_handlers = []
+    for validate_args in validators:
+        handle_result = validate_args(*args, **kwargs)
+        if handle_result is not None:
+            result_handlers.append(handle_result)
+    result = func(*args, **kwargs)
+    for handle_result in result_handlers:
+        result = handle_result(result)
+    return result
+
+
 class Interface(type):
 
     """
