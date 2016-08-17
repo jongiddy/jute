@@ -45,7 +45,7 @@ additional attributes:
         # more expensive operation
         add_line_buffering(out, buf)
 
-Interfaces can define non-method object using the :py:class:`jute.Attribute` class:
+Interfaces can define non-method attributes using the :py:class:`jute.Attribute` class:
 
 .. code-block:: python
 
