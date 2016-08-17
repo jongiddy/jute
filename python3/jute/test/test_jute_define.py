@@ -294,20 +294,18 @@ class ValidateFunctionTests(unittest.TestCase):
             return foo
 
         def validate(kan):
-            def handle_result(result):
-                return result
-            return handle_result
+            yield
         self.assertEqual(validate_function([validate], func, (3,), {}), 3)
 
-    def test_transform_result_validator(self):
+    def test_too_many_iterations(self):
         def func(foo):
             return foo
 
         def validate(kan):
-            def handle_result(result):
-                return result * 2
-            return handle_result
-        self.assertEqual(validate_function([validate], func, (3,), {}), 6)
+            yield
+            yield
+        with self.assertRaises(RuntimeError):
+            validate_function([validate], func, (3,), {})
 
     def test_failing_args_validator(self):
         def func(foo):
@@ -324,10 +322,8 @@ class ValidateFunctionTests(unittest.TestCase):
             return foo
 
         def validate(kan):
-            def handle_result(result):
-                assert isinstance(result, str)
-                return result
-            return handle_result
+            result = yield
+            assert isinstance(result, str)
 
         with self.assertRaises(AssertionError):
             validate_function([validate], func, (3,), {})
