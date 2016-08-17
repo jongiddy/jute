@@ -1,6 +1,6 @@
 import unittest
 from jute import Attribute, Opaque, implements, InterfaceConformanceError
-from jute._jute import validate_function
+from jute._jute import _validate_function
 
 
 class TypeA(str):
@@ -287,7 +287,7 @@ class ValidateFunctionTests(unittest.TestCase):
 
         def validate(kan):
             """Nothing here"""
-        self.assertEqual(validate_function([validate], func, (3,), {}), 3)
+        self.assertEqual(_validate_function([validate], func, (3,), {}), 3)
 
     def test_non_acting_validator(self):
         def func(foo):
@@ -295,7 +295,7 @@ class ValidateFunctionTests(unittest.TestCase):
 
         def validate(kan):
             yield
-        self.assertEqual(validate_function([validate], func, (3,), {}), 3)
+        self.assertEqual(_validate_function([validate], func, (3,), {}), 3)
 
     def test_too_many_iterations(self):
         def func(foo):
@@ -305,7 +305,7 @@ class ValidateFunctionTests(unittest.TestCase):
             yield
             yield
         with self.assertRaises(RuntimeError):
-            validate_function([validate], func, (3,), {})
+            _validate_function([validate], func, (3,), {})
 
     def test_failing_args_validator(self):
         def func(foo):
@@ -315,7 +315,7 @@ class ValidateFunctionTests(unittest.TestCase):
             assert isinstance(kan, str)
 
         with self.assertRaises(AssertionError):
-            validate_function([validate], func, (3,), {})
+            _validate_function([validate], func, (3,), {})
 
     def test_failing_result_validator(self):
         def func(foo):
@@ -326,4 +326,4 @@ class ValidateFunctionTests(unittest.TestCase):
             assert isinstance(result, str)
 
         with self.assertRaises(AssertionError):
-            validate_function([validate], func, (3,), {})
+            _validate_function([validate], func, (3,), {})

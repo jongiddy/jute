@@ -229,11 +229,11 @@ SPECIAL_METHODS = {
 }
 
 
-def validate_function(validators, func, args, kwargs):
+def _validate_function(validators, func, args, kwargs):
     """
     Validate a function call using a series of validators.
 
-    The validators are called in order. If a validator returns a
+    Each validator is called in sequence. If a validator returns a
     generator, the generator is run to the first yield, the function is
     called, and the result is sent to the generator. Sends are performed
     in the opposite order to the initial validation.
