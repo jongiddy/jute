@@ -47,7 +47,7 @@ class WhenInterfaceHasMethod(unittest.TestCase):
         class Implementation:
 
             def kan(self, ga, roo):
-                return ga, roo
+                return ga
         impl = Implementation()
         face = IMethod(impl)
         with self.assertRaises(TypeError):
@@ -58,15 +58,16 @@ class WhenInterfaceHasMethod(unittest.TestCase):
         @implements(IMethod)
         class Implementation:
 
-            def kan(self, ga, roo):
-                return ga, roo
+            def kan(self, ga):
+                return ga
         impl = Implementation()
         face = IMethod(impl)
-        from types import MethodType
-        def new(self, ga):
+
+        def new(self, ga, roo):
             pass
+        from types import MethodType
         with self.assertRaises(TypeError):
-            face.kan = MethodType(new, face, IMethod)
+            face.kan = MethodType(new, face)
 
     def test_method_can_be_inexact_matching_signature(self):
         @implements(IMethod)
