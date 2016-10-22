@@ -289,21 +289,23 @@ class Interface(type):
     }
 
     def __new__(meta, name, bases, dct):
-        # Called when a new class is defined.  Use the dictionary of
+        # Called when a new interface is defined.  Use the dictionary of
         # declared attributes to create a mapping to the wrapped object
         class_attributes = meta._DEFAULT_ATTRIBUTES.copy()
         provider_attributes = dict()
         for base in bases:
             if isinstance(base, Interface):
-                # base class is a super-interface of this interface
-                # This interface provides all attributes from the base
-                # interface
-                for key in base._provider_attributes:
-                    v = provider_attributes.get(key)
-                    if v is None:
-                        v = []
-                        provider_attributes[key] = v
-                    v.extend(base._provider_attributes[key])
+                # This base class is a super-interface of the new interface.
+                # The new interface provides all attributes from the base
+                # interface.  If an attribute is defined in multiple bases,
+                # they must be compatible (the earlier one must extend
+                # the later one).
+                for key, value in base._provider_attributes.items():
+                    existing = provider_attributes.get(key)
+                    if existing is None:
+                        provider_attributes[key] = value
+                    else:
+                        existing.must_extend(value)
         for key, value in dct.items():
             # Almost all attributes on the interface are mapped to
             # return the equivalent attributes on the wrapped object.
@@ -432,7 +434,7 @@ class Interface(type):
                 """A completely different interface."""
 
             @implements(IFooBar, IBaz)
-            class FooBarBaz:
+            class FooBarBaz: v
                 """A class that implements all the above interfaces."""
 
             fb1 = IFooBar(FooBarBaz())
@@ -547,6 +549,26 @@ class Interface(type):
             the interface, or :py:obj:`False` otherwise.
         """
         return interface.provided_by(underlying_object(obj))
+
+
+class Method:
+
+    def __init__(self, f):
+        self.f = f
+
+    def extends(self, other):
+        """
+        Return boolean indicating if this attribute extends another.
+        """
+
+    def must_extend(self, other):
+        """
+        Raise an error if this attribute does not extend other
+        """
+        if not self.extends(other):
+            raise InterfaceConformanceError(
+                "{} does not extend {}".format(self, other)
+            )
 
 
 class Attribute:
